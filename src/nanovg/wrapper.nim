@@ -1,6 +1,7 @@
 import os
 import opengl
 import strutils
+import regex
 
 import nimterop/[cimport, build]
 
@@ -31,33 +32,36 @@ src/*.c
 """, checkout = "1f9c8864fc556a1be4d4bf1d6bfe20cde25734b4")
 
   let contents = readFile(srcDir/"src/nanovg_gl.h")
-  let newContents = contents.replace("#define NANOVG_GL_H\n", """
+  let newContents = contents.replace(re"#define NANOVG_GL_H", """
+#define NANOVG_GL_H
 #define NANOVG_GL_USE_UNIFORMBUFFER
 #define NANOVG_GL3
 #define GLFW_INCLUDE_GLEXT
 #ifdef __APPLE__
 #  define GLFW_INCLUDE_GLCOREARB
 #endif
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "nanovg.h"
-""")
+""", limit=1)
   writeFile(srcDir/"src/nanovg_gl.h", newContents)
+
+cDefine("NANOVG_GL3_IMPLEMENTATION", "")
 
 # Manually wrap any symbols since nimterop cannot or incorrectly wraps them
 cOverride:
   # Standard Nim code to wrap types, consts, procs, etc.
   type
+     NVGcontext* {.importc: "struct NVGcontext", bycopy.} = object
      NVGcolor* {.importc: "struct NVGcolor", bycopy.} = object
        r* {.importc: "r".}: cfloat
        g* {.importc: "g".}: cfloat
        b* {.importc: "b".}: cfloat
        a* {.importc: "a".}: cfloat
+  proc CreateGL*(flags: cint): ptr NVGContext {.importc: "nvgCreateGL3", header: srcDir/"src/nanovg_gl.h", cdecl.}
 
 # Specify include directories for gcc and Nim
 cIncludeDir(srcDir/"src")
-
-# Define global symbols
-cDefine("NANOVG_GL3_IMPLEMENTATION", "1")
 
 # Any global compiler options
 when defined(macosx):
@@ -69,8 +73,8 @@ elif defined(unix):
   {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW".}
   {.passL: "-lGL -lGLU -lGLEW -lm -lglfw".}
 elif defined(windows):
-  {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW -D_CRT_SECURE_NO_WARNINGS".}
-  {.passL: "-lglew32 -lm -lglfw3 -lgdi32 -lwinmm -luser32 -lglu32 -lopengl32 -lkernel32".}
+  {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW -D_CRT_SECURE_NO_WARNINGS -w -fmax-errors=10".}
+  {.passL: "-lfreeglut -lglew32 -lm -lglfw3 -lgdi32 -lwinmm -luser32 -lglu32 -lopengl32 -lkernel32".}
 
 
 # Compile in any common source code
