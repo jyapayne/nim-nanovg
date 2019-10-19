@@ -204,7 +204,6 @@ proc main =
 
 
   var w = newWindow(c)
-  echo currentSourcePath
   nanovg.init()
   nanovg.loadFont(currentSourceDir()/"resources/Roboto-Regular.ttf", "sans")
   nanovg.loadFont(currentSourceDir()/"resources/Roboto-Bold.ttf", "sans-bold")
