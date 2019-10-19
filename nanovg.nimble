@@ -6,8 +6,6 @@ description   = "A wrapper around nanovg"
 license       = "MIT"
 srcDir        = "src"
 
-
-
 # Dependencies
 
 requires "nim >= 1.0.0",
@@ -15,3 +13,6 @@ requires "nim >= 1.0.0",
          "regex >= 0.12.0",
          "opengl >= 1.2.2",
          "https://github.com/jyapayne/nim-glfw#d4f30db"
+
+task buildExample, "Build example":
+    exec "nim c -d:release -d:danger -r examples/demo.nim"

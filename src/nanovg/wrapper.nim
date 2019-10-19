@@ -68,6 +68,9 @@ when defined(macosx):
 elif defined(unix):
   {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW".}
   {.passL: "-lGL -lGLU -lGLEW -lm -lglfw".}
+elif defined(windows):
+  {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW -D_CRT_SECURE_NO_WARNINGS".}
+  {.passL: "-lglew32 -lm -lglfw3 -lgdi32 -lwinmm -luser32 -lglu32 -lopengl32 -lkernel32".}
 
 
 # Compile in any common source code
