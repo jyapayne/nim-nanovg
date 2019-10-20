@@ -1,0 +1,1 @@
+source C:/Users/jyapa/.choosenim/toolchains/nim-#devel/tools/nim-gdb.py
