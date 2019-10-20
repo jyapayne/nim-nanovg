@@ -1,6 +1,5 @@
 import os
 import opengl
-import strutils
 import regex
 
 import nimterop/[cimport, build]
@@ -10,12 +9,8 @@ import nimterop/[cimport, build]
 #   https://nimterop.github.io/nimterop/cimport.html
 
 const
-  # Location where any sources should get downloaded. Adjust depending on
-  # actual location of wrapper file relative to project.
-  baseDir = currentSourcePath.parentDir().parentDir().parentDir()/"build"
-
-  # All files and dirs should be inside to baseDir
-  srcDir = baseDir/"nanovg"
+  baseDir = currentSourcePath.parentDir().parentDir().parentDir()
+  srcDir = baseDir/"build"/"nanovg"
 
 static:
   # Print generated Nim to output
@@ -32,7 +27,8 @@ src/*.c
 """, checkout = "1f9c8864fc556a1be4d4bf1d6bfe20cde25734b4")
 
   let contents = readFile(srcDir/"src/nanovg_gl.h")
-  let newContents = contents.replace(re"#define NANOVG_GL_H", """
+  when defined(useGlfw):
+    let newContents = contents.replace(re"#define NANOVG_GL_H", """
 #define NANOVG_GL_H
 #define NANOVG_GL_USE_UNIFORMBUFFER
 #define NANOVG_GL3
@@ -44,6 +40,15 @@ src/*.c
 #include <GLFW/glfw3.h>
 #include "nanovg.h"
 """, limit=1)
+  else:
+    let newContents = contents.replace(re"#define NANOVG_GL_H", """
+#define NANOVG_GL_H
+#define NANOVG_GL_USE_UNIFORMBUFFER
+#define NANOVG_GL3
+#include <GL/glew.h>
+#include "nanovg.h"
+""", limit=1)
+
   writeFile(srcDir/"src/nanovg_gl.h", newContents)
 
 cDefine("NANOVG_GL3_IMPLEMENTATION", "")
@@ -58,7 +63,6 @@ cOverride:
        g* {.importc: "g".}: cfloat
        b* {.importc: "b".}: cfloat
        a* {.importc: "a".}: cfloat
-  proc CreateGL*(flags: cint): ptr NVGContext {.importc: "nvgCreateGL3", header: srcDir/"src/nanovg_gl.h", cdecl.}
 
 # Specify include directories for gcc and Nim
 cIncludeDir(srcDir/"src")
@@ -73,8 +77,17 @@ elif defined(unix):
   {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW".}
   {.passL: "-lGL -lGLU -lGLEW -lm -lglfw".}
 elif defined(windows):
-  {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW -D_CRT_SECURE_NO_WARNINGS -w -fmax-errors=10".}
-  {.passL: "-lfreeglut -lglew32 -lm -lglfw3 -lgdi32 -lwinmm -luser32 -lglu32 -lopengl32 -lkernel32".}
+  const inclPath = baseDir/"lib"/"include"
+  when defined(amd64):
+    const libPath = baseDir/"lib"/"64bit"
+  else:
+    const libPath = baseDir/"lib"/"32bit"
+  when defined(useGlfw):
+    {.passC: "-I" & inclPath & "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW -DGLEW_STATIC -D_CRT_SECURE_NO_WARNINGS -w -fmax-errors=10".}
+    {.passL: "-L" & libPath & " -static -lglew32 -lm -lglfw3 -lgdi32 -lwinmm -luser32 -lglu32 -lopengl32 -lkernel32".}
+  else:
+    {.passC: "-I" & inclPath & "-DNANOVG_GL3_IMPLEMENTATION -D_CRT_SECURE_NO_WARNINGS -w -fmax-errors=10".}
+    {.passL: "-L" & libPath & "-lSDL2 -lSDL2_image -lm -lgdi32 -lglew32 -lwinmm -luser32 -lglu32 -lopengl32 -lkernel32".}
 
 
 # Compile in any common source code
@@ -82,7 +95,7 @@ cCompile(srcDir/"src/*.c")
 
 # Use cPlugin() to make any symbol changes
 cPlugin:
-  import strutils
+  import strutils, regex
 
   # Symbol renaming examples
   proc onSymbol*(sym: var Symbol) {.exportc, dynlib.} =
@@ -90,12 +103,15 @@ cPlugin:
     # sym.name = sym.name.strip(chars = {'_'})
 
     # Remove prefixes or suffixes from procs
+    if sym.name.startsWith("nvg__"):
+      sym.name = sym.name.replace(re"nvg__", "")
+
     if sym.kind == nskProc:
-      sym.name = sym.name.replace("glnvg__", "")
-      sym.name = sym.name.replace("nvg__", "")
-      sym.name = sym.name.replace("nvglu", "")
-      sym.name = sym.name.replace("nvgl", "")
-      sym.name = sym.name.replace("nvg", "")
+      sym.name = sym.name.replace(re"glnvg__", "")
+      sym.name = sym.name.replace(re"nvg__", "")
+      sym.name = sym.name.replace(re"nvglu", "")
+      sym.name = sym.name.replace(re"nvgl", "")
+      sym.name = sym.name.replace(re"nvg", "")
 
 # Finally import wrapped header file. Recurse if #include files should also
 # be wrapped. Set dynlib if binding to dynamic library.
