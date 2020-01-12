@@ -18,8 +18,6 @@ requires "nim >= 1.0.0",
 import os
 
 proc setupBuildDir(buildDir: string, prefixes: openArray[string]) =
-  if not defined(windows):
-    return
   var arch = ""
   if system.existsDir(buildDir):
     rmDir buildDir
@@ -28,6 +26,10 @@ proc setupBuildDir(buildDir: string, prefixes: openArray[string]) =
   else:
     arch = "32bit"
   mkDir buildDir
+
+  if not defined(windows):
+    return
+
   var files = listFiles "lib/" & arch & "/"
   for fpath in files:
     let fname = fpath.extractFileName()
