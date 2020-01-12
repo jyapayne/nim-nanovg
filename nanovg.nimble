@@ -18,6 +18,8 @@ requires "nim >= 1.0.0",
 import os
 
 proc setupBuildDir(buildDir: string, prefixes: openArray[string]) =
+  if not defined(windows):
+    return
   var arch = ""
   if system.existsDir(buildDir):
     rmDir buildDir
@@ -54,7 +56,7 @@ task buildSDL2ExampleDebug, "Build SDL2 example debug":
 
 task buildGLFWExample, "Build GLFW example":
   let buildDir = setupGLFW()
-  exec "nim c --app:gui -d:release -d:danger -o:" & buildDir & "/" & "demo_glfw".toExe & " -r examples/demo.nim"
+  exec "nim c --app:gui -d:useGlfw -d:release -d:danger -o:" & buildDir & "/" & "demo_glfw".toExe & " -r examples/demo.nim"
 
 task buildGLFWExampleDebug, "Build GLFW example debug":
   let buildDir = setupGLFW()
