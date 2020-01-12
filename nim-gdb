@@ -13,7 +13,8 @@ GDB_PYTHON_MODULE_PATH="$NIM_SYSROOT/tools/nim-gdb.py"
 # Run GDB with the additional arguments that load the pretty printers
 # Set the environment variable `NIM_GDB` to overwrite the call to a
 # different/specific command (defaults to `gdb`).
-NIM_GDB="${NIM_GDB:-gdb.exe}"
+NIM_GDB="${NIM_GDB:-gdb}"
+echo "source $GDB_PYTHON_MODULE_PATH" > gdbcommands.txt
 # exec replaces the new process of bash with gdb. It is always good to
 # have fewer processes.
 exec ${NIM_GDB} --command="gdbcommands.txt" "$@"
