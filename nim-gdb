@@ -5,9 +5,14 @@ set -e
 
 which nim > /dev/null || (echo "nim not in PATH"; exit 1)
 which gdb > /dev/null || (echo "gdb not in PATH"; exit 1)
+which readlink > /dev/null || which greadlink > /dev/null || (echo "readlink not in PATH. Please install coreutils from brew if on Mac."; exit 1)
+
+nreadlink () {
+    (which readlink > /dev/null && readlink "$@") || (which greadlink > /dev/null && greadlink "$@") || echo "Readlink could not be found"
+}
 
 # Find out where the pretty printer Python module is
-NIM_SYSROOT=$(dirname $(dirname $(readlink -e $(which nim))))
+NIM_SYSROOT=$(dirname $(dirname $(nreadlink -e $(which nim))))
 GDB_PYTHON_MODULE_PATH="$NIM_SYSROOT/tools/nim-gdb.py"
 
 # Run GDB with the additional arguments that load the pretty printers
