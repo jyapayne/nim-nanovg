@@ -12,7 +12,7 @@ requires "nim >= 1.0.0",
          "nimterop#head",
          "regex >= 0.12.0",
          "opengl >= 1.2.2",
-         "https://github.com/jyapayne/nim-glfw#d4f30db",
+         "nim-glfw#head",
          "sdl2_nim >= 2.0.5.0"
 
 import os

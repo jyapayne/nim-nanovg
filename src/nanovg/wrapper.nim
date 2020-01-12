@@ -70,12 +70,19 @@ cIncludeDir(srcDir/"src")
 # Any global compiler options
 when defined(macosx):
   # cDefine("GLFW_INCLUDE_GLCOREARB", "1")
-  {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW -D_GLFW_USE_RETINA -D_GLFW_COCOA -D_GLFW_USE_CHDir -D_GLFW_USE_MENUBAR".}
-  {.passL: "-m64 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -lm".}
+  when defined(useGlfw):
+    {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW -D_GLFW_USE_RETINA -D_GLFW_COCOA -D_GLFW_USE_CHDir -D_GLFW_USE_MENUBAR".}
+    {.passL: "-m64 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -lm".}
+  else:
+    {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW".}
+    {.passL: "-m64 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -lm".}
 
 elif defined(unix):
   {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW".}
-  {.passL: "-lGL -lGLU -lGLEW -lm -lglfw".}
+  when defined(useGlfw):
+    {.passL: "-lGL -lGLU -lGLEW -lm -lglfw".}
+  else:
+    {.passL: "-lGL -lGLU -lGLEW -lm -lSDL2".}
 elif defined(windows):
   const inclPath = baseDir/"lib"/"include"
   when defined(amd64):
