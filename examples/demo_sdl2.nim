@@ -49,16 +49,20 @@ proc main() =
     screenWidth = 640
     screenHeight = 480
 
+  discard sdl.init(sdl.INIT_EVERYTHING)
+
+  discard sdl.glSetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE)
+  discard sdl.glSetAttribute(sdl.GL_CONTEXT_FLAGS, sdl.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)
   discard sdl.glSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
   discard sdl.glSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 2)
 
-  discard sdl.init(sdl.INIT_EVERYTHING)
   let window = sdl.createWindow(
     "SDL2 Test",
     sdl.WINDOWPOS_CENTERED,
     sdl.WINDOWPOS_CENTERED,
     screenWidth, screenHeight, windowFlags
   )
+
   let context = glCreateContext(window)
 
   discard sdl.glSetSwapInterval(0)
