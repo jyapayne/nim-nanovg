@@ -3,3 +3,6 @@ nimcache/
 build/
 examples/demo
 demo.exe
+
+gdbcommands.txt
+wingdbcommand.txt
