@@ -10,7 +10,7 @@ proc main =
   c.version = glv32
   c.title = "Minimal Nim-GLFW example"
   c.forwardCompat = true
-  c.profile = opCompatProfile
+  c.profile = opCoreProfile
   c.debugContext = false
 
   let

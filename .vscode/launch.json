@@ -6,13 +6,58 @@
     "configurations": [
 
         {
-            "name": "Nim Debug",
+            "name": "Nim Debug GLFW Windows",
             "type": "gdb",
             "request": "launch",
             "target": "${workspaceFolder}\\build\\demo\\demo_glfw_debug.exe",
             "cwd": "${workspaceRoot}",
             "gdbpath": "${workspaceFolder}\\nim-gdb.bat",
             "valuesFormatting": "parseText"
-        }
+        },
+        {
+            "name": "Nim Debug SDL2 Windows",
+            "type": "gdb",
+            "request": "launch",
+            "target": "${workspaceFolder}\\build\\demosdl2\\demo_sdl2_debug.exe",
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceFolder}\\nim-gdb.bat",
+            "valuesFormatting": "parseText"
+        },
+        {
+            "name": "Nim Debug SDL2",
+            "type": "gdb",
+            "request": "launch",
+            "target": "${workspaceFolder}/build/demosdl2/demo_sdl2_debug",
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceFolder}/nim-gdb",
+            "valuesFormatting": "parseText"
+        },
+        {
+            "name": "Nim Debug GLFW",
+            "type": "gdb",
+            "request": "launch",
+            "target": "${workspaceFolder}/build/demo/demo_glfw_debug",
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceFolder}/nim-gdb",
+            "valuesFormatting": "parseText"
+        },
+        {
+            "name": "Nim Debug SDL2 Mac",
+            "type": "gdb",
+            "request": "launch",
+            "target": "${workspaceFolder}/build/demosdl2/demo_sdl2_debug",
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceFolder}/nim-gdb-mac",
+            "valuesFormatting": "parseText"
+        },
+        {
+            "name": "Nim Debug GLFW Mac",
+            "type": "gdb",
+            "request": "launch",
+            "target": "${workspaceFolder}/build/demo/demo_glfw_debug",
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceFolder}/nim-gdb-mac",
+            "valuesFormatting": "parseText"
+        },
     ]
 }

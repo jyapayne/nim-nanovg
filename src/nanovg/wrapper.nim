@@ -71,7 +71,7 @@ cIncludeDir(srcDir/"src")
 when defined(macosx):
   # cDefine("GLFW_INCLUDE_GLCOREARB", "1")
   {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW -D_GLFW_USE_RETINA -D_GLFW_COCOA -D_GLFW_USE_CHDir -D_GLFW_USE_MENUBAR".}
-  {.passL: "-m64 -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -lm".}
+  {.passL: "-m64 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -lm".}
 
 elif defined(unix):
   {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW".}
