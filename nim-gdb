@@ -8,7 +8,7 @@ which gdb > /dev/null || (echo "gdb not in PATH"; exit 1)
 which readlink > /dev/null || which greadlink > /dev/null || (echo "readlink not in PATH. Please install coreutils from brew if on Mac."; exit 1)
 
 nreadlink () {
-    (which readlink > /dev/null && readlink "$@") || (which greadlink > /dev/null && greadlink "$@") || echo "Readlink could not be found"
+    (which greadlink > /dev/null && greadlink "$@") || (which readlink > /dev/null && readlink "$@") || echo "Readlink could not be found"
 }
 
 # Find out where the pretty printer Python module is
