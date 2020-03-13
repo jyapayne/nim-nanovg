@@ -2,6 +2,10 @@
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    //
+    // For mac debugging, this homebrew formula must be used:
+    // https://raw.githubusercontent.com/Homebrew/homebrew-core/953092c0f17f9d2433ac1f099d91f96a56d4890e/Formula/gdb.rb
+    // There is some bug with gdb 8.3.1 and above, so 8.3 must be used
     "version": "0.2.0",
     "configurations": [
         {
