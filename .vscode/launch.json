@@ -6,6 +6,10 @@
     // For mac debugging, this homebrew formula must be used:
     // https://raw.githubusercontent.com/Homebrew/homebrew-core/953092c0f17f9d2433ac1f099d91f96a56d4890e/Formula/gdb.rb
     // There is some bug with gdb 8.3.1 and above, so 8.3 must be used
+    //
+    // Also, to get rid of Python unicode errors, set the following env vars in your .bashrc/.bash_profile
+    //   export LANG="en_US.UTF-8"
+    //   export LC_CTYPE="en_US.UTF-8"
     "version": "0.2.0",
     "configurations": [
         {
