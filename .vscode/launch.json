@@ -4,42 +4,33 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
-            "name": "Nim Debug GLFW Windows",
+            "name": "Nim Debug GLFW",
             "type": "gdb",
             "request": "launch",
-            "target": "${workspaceFolder}\\build\\demo\\demo_glfw_debug.exe",
+            "valuesFormatting": "parseText",
+            "target": "${workspaceFolder}/build/demo/demo_glfw_debug",
             "cwd": "${workspaceRoot}",
-            "gdbpath": "${workspaceFolder}\\nim-gdb.bat",
-            "valuesFormatting": "parseText"
-        },
-        {
-            "name": "Nim Debug SDL2 Windows",
-            "type": "gdb",
-            "request": "launch",
-            "target": "${workspaceFolder}\\build\\demosdl2\\demo_sdl2_debug.exe",
-            "cwd": "${workspaceRoot}",
-            "gdbpath": "${workspaceFolder}\\nim-gdb.bat",
-            "valuesFormatting": "parseText"
+            "gdbpath": "${workspaceFolder}/nim-gdb",
+            "windows": {
+                "target": "${workspaceFolder}\\build\\demo\\demo_glfw_debug.exe",
+                "cwd": "${workspaceRoot}",
+                "gdbpath": "${workspaceFolder}\\nim-gdb.bat"
+            }
         },
         {
             "name": "Nim Debug SDL2",
             "type": "gdb",
             "request": "launch",
+            "valuesFormatting": "parseText",
             "target": "${workspaceFolder}/build/demosdl2/demo_sdl2_debug",
             "cwd": "${workspaceRoot}",
             "gdbpath": "${workspaceFolder}/nim-gdb",
-            "valuesFormatting": "parseText"
-        },
-        {
-            "name": "Nim Debug GLFW",
-            "type": "gdb",
-            "request": "launch",
-            "target": "${workspaceFolder}/build/demo/demo_glfw_debug",
-            "cwd": "${workspaceRoot}",
-            "gdbpath": "${workspaceFolder}/nim-gdb",
-            "valuesFormatting": "parseText"
-        },
+            "windows": {
+                "target": "${workspaceFolder}\\build\\demosdl2\\demo_sdl2_debug.exe",
+                "cwd": "${workspaceRoot}",
+                "gdbpath": "${workspaceFolder}\\nim-gdb.bat",
+            }
+        }
     ]
 }
