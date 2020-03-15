@@ -19,7 +19,7 @@
             "valuesFormatting": "parseText",
             "target": "${workspaceFolder}/build/demo/demo_glfw_debug",
             "cwd": "${workspaceRoot}",
-            "gdbpath": "${workspaceFolder}/nim-gdb",
+            "gdbpath": "${workspaceFolder}/nim-gdb.bash",
             "windows": {
                 "target": "${workspaceFolder}\\build\\demo\\demo_glfw_debug.exe",
                 "cwd": "${workspaceRoot}",
@@ -33,7 +33,7 @@
             "valuesFormatting": "parseText",
             "target": "${workspaceFolder}/build/demosdl2/demo_sdl2_debug",
             "cwd": "${workspaceRoot}",
-            "gdbpath": "${workspaceFolder}/nim-gdb",
+            "gdbpath": "${workspaceFolder}/nim-gdb.bash",
             "windows": {
                 "target": "${workspaceFolder}\\build\\demosdl2\\demo_sdl2_debug.exe",
                 "cwd": "${workspaceRoot}",
