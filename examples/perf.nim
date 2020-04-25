@@ -96,7 +96,7 @@ proc render*(graph: PerfGraph, x, y: float) =
     nanovg.setFontSize(14)
     nanovg.textAlign("top left")
     nanovg.setFillColor(240, 240, 240, 192)
-    nanovg.text(x+3, y+1, graph.name)
+    nanovg.text(graph.name, x+3, y+1)
 
   nanovg.setFontSize(18)
   nanovg.textAlign("top right")
@@ -106,18 +106,18 @@ proc render*(graph: PerfGraph, x, y: float) =
     of RenderStyle.FPS:
       var str = fmt"{1.0/avg:.2f} FPS"
 
-      nanovg.text(x+width-3, y+1, str)
+      nanovg.text(str, x+width-3, y+1)
       nanovg.setFontSize(15)
       nanovg.textAlign("bottom right")
       nanovg.setFillColor(240, 240, 240, 160)
 
       str = fmt"{avg*1000:.2f} ms"
-      nanovg.text(x+width-3, y+height-1, str)
+      nanovg.text(str, x+width-3, y+height-1)
 
     of RenderStyle.PERCENT:
       let str = fmt"{avg:.1f} %"
-      nanovg.text(x+width-3, y+1, str)
+      nanovg.text(str, x+width-3, y+1)
 
     of RenderStyle.MS:
       let str = fmt"{avg*1000:.2f} ms"
-      nanovg.text(x+width-3, y+1, str)
+      nanovg.text(str, x+width-3, y+1)

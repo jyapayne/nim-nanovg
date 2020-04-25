@@ -1,5 +1,5 @@
-import sdl2/sdl except Color
-import sdl2/sdl_image as img, opengl
+import sdl2/sdl2 as sdl
+import sdl2/sdl2_image as img, opengl
 
 import os
 import nanovg
@@ -13,16 +13,16 @@ proc events(): bool =
   while sdl.pollEvent(addr(e)) != 0:
 
     # Quit requested
-    if e.kind == sdl.Quit:
+    if e.kind.EventType == sdl.EventQuit:
       return true
 
     # Key pressed
-    elif e.kind == sdl.KeyDown:
+    elif e.kind.EventType == sdl.EventKeyDown:
       # Exit on Escape key press
-      if e.key.keysym.sym == sdl.K_Escape:
+      if e.key.keysym.sym == sdl.KeycodeEscape:
         return true
 
-proc frameBufferSize*(window: Window): tuple[w, h: int32] =
+proc frameBufferSize*(window: ptr Window): tuple[w, h: int32] =
   var
     fbWidth: cint
     fbHeight: cint
@@ -31,7 +31,7 @@ proc frameBufferSize*(window: Window): tuple[w, h: int32] =
 
   return (fbWidth.int32, fbHeight.int32)
 
-proc size*(window: Window): tuple[w, h: int32] =
+proc size*(window: ptr Window): tuple[w, h: int32] =
   var
     width: cint
     height: cint
@@ -45,22 +45,22 @@ proc main() =
     fps = newGraph(RenderStyle.FPS, "Frame Time")
     cpuGraph = newGraph(RenderStyle.MS, "CPU Time")
   let
-    windowFlags: uint32 = sdl.WINDOW_OPENGL or sdl.WINDOW_ALLOW_HIGHDPI or sdl.WINDOW_SHOWN
+    windowFlags = sdl.WINDOW_OPENGL or sdl.WINDOW_ALLOW_HIGHDPI or sdl.WINDOW_SHOWN
     screenWidth = 640
     screenHeight = 480
 
-  discard sdl.init(sdl.INIT_EVERYTHING)
+  discard sdl.init(sdl.INIT_EVERYTHING.uint32)
 
-  discard sdl.glSetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE)
-  discard sdl.glSetAttribute(sdl.GL_CONTEXT_FLAGS, sdl.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG)
+  discard sdl.glSetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE.cint)
+  discard sdl.glSetAttribute(sdl.GL_CONTEXT_FLAGS, sdl.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG.cint)
   discard sdl.glSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
   discard sdl.glSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 2)
 
   let window = sdl.createWindow(
     "SDL2 Test",
-    sdl.WINDOWPOS_CENTERED,
-    sdl.WINDOWPOS_CENTERED,
-    screenWidth, screenHeight, windowFlags
+    sdl.WINDOWPOS_CENTERED.cint,
+    sdl.WINDOWPOS_CENTERED.cint,
+    screenWidth.cint, screenHeight.cint, windowFlags.uint32
   )
 
   let context = glCreateContext(window)
