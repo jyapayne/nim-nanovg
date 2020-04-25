@@ -8,12 +8,12 @@ srcDir        = "src"
 
 # Dependencies
 
-requires "nim >= 1.0.0",
+requires "nim >= 1.0.6",
          "nimterop#head",
          "regex >= 0.12.0",
          "opengl >= 1.2.2",
          "nim-glfw#head",
-         "sdl2_nim >= 2.0.12.0"
+         "sdl2"
 
 import os
 
@@ -55,6 +55,10 @@ task buildSDL2Example, "Build SDL2 example":
 task buildSDL2ExampleDebug, "Build SDL2 example debug":
   let buildDir = setupSDL2()
   exec "nimble c --app:gui --debugger:native -o:" & buildDir & "/" & "demo_sdl2_debug".toExe & " -r examples/demo_sdl2.nim"
+
+task buildSDL2GPUExample, "Build SDL2 GPU example":
+  let buildDir = setupSDL2()
+  exec "nimble c --app:gui --debugger:native -o:" & buildDir & "/" & "demo_sdl2_gpu".toExe & " -r examples/demo_sdl2_gpu.nim"
 
 task buildGLFWExample, "Build GLFW example":
   let buildDir = setupGLFW()

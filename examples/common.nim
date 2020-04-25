@@ -24,7 +24,7 @@ proc drawLabel*(text: string, x, y, w, h: float) =
   nanovg.setFillColor(1.0, 1.0, 1.0, 1.0)
 
   nanovg.textAlign("left middle")
-  nanovg.text(x, y+h*0.5, text)
+  nanovg.text(text, x, y+h*0.5)
 
 proc drawWindow*(title: string, x, y, w, h: float) =
   let cornerRadius = 3.0
@@ -41,11 +41,11 @@ proc drawWindow*(title: string, x, y, w, h: float) =
 
     nanovg.setFontBlur(2)
     nanovg.setFillColor(RGBA(0,0,0,128))
-    nanovg.text(x+w/2, y+16+1, title)
+    nanovg.text(title, x+w/2, y+16+1)
 
     nanovg.setFontBlur(0)
     nanovg.setFillColor(RGBA(220,220,220,160))
-    nanovg.text(x+w/2,y+16, title)
+    nanovg.text(title, x+w/2,y+16)
 
 proc isBlack*(color: Color): bool =
   result = true
@@ -163,12 +163,12 @@ proc drawButton*(preicon: string, text: string, x, y, w, h: float, color: Color)
 
   nanovg.setFontSize(20.0)
   nanovg.setFont("sans-bold")
-  tb = nanovg.textBounds(0.0, 0.0, text)
+  tb = nanovg.textBounds(text, 0.0, 0.0)
   tw = tb.horizontalAdvance
 
   nanovg.setFontSize(h*0.5)
   nanovg.setFont("fa")
-  ib = nanovg.textBounds(0,0, preicon)
+  ib = nanovg.textBounds(preicon, 0, 0)
   iw = ib.horizontalAdvance
   iw += h*0.15
 
@@ -176,14 +176,14 @@ proc drawButton*(preicon: string, text: string, x, y, w, h: float, color: Color)
   nanovg.setFont("fa")
   nanovg.setFillColor(RGBA(255,255,255,96))
   nanovg.textAlign("left middle")
-  nanovg.text(x+w*0.5-tw*0.5-iw*0.75, y+h*0.5, preicon)
+  nanovg.text(preicon, x+w*0.5-tw*0.5-iw*0.75, y+h*0.5)
 
   nanovg.setFontSize(20.0)
   nanovg.setFont("sans-bold")
   nanovg.textAlign("left middle")
   nanovg.setFillColor(RGBA(0,0,0,160))
-  nanovg.text(x+w*0.5-tw*0.5+iw*0.25, y+h*0.5-1, text)
+  nanovg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5-1)
   nanovg.setFillColor(RGBA(255,255,255,160))
-  nanovg.text(x+w*0.5-tw*0.5+iw*0.25, y+h*0.5, text)
+  nanovg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5)
 
 proc glewInit*() {.header:"<GL/glew.h>".}

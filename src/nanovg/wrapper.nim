@@ -1,6 +1,6 @@
 import os
 import opengl
-import regex
+import strutils
 
 import nimterop/[cimport, build]
 
@@ -28,7 +28,7 @@ src/*.c
 
   let contents = readFile(srcDir/"src/nanovg_gl.h")
   when defined(useGlfw):
-    let newContents = contents.replace(re"#define NANOVG_GL_H", """
+    let newContents = contents.replace("#define NANOVG_GL_H", """
 #define NANOVG_GL_H
 #define NANOVG_GL_USE_UNIFORMBUFFER
 #define NANOVG_GL3
@@ -39,30 +39,33 @@ src/*.c
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "nanovg.h"
-""", limit=1)
+""")
   else:
-    let newContents = contents.replace(re"#define NANOVG_GL_H", """
+    let newContents = contents.replace("#define NANOVG_GL_H", """
 #define NANOVG_GL_H
 #define NANOVG_GL_USE_UNIFORMBUFFER
 #define NANOVG_GL3
 #include <GL/glew.h>
 #include "nanovg.h"
-""", limit=1)
+""")
 
   writeFile(srcDir/"src/nanovg_gl.h", newContents)
+  # This is needed for some function definitions inside nanovg_gl.h
+  writeFile(srcDir/"src/nanovg_gl.c", newContents)
 
 cDefine("NANOVG_GL3_IMPLEMENTATION", "")
+cDefine("NANOVG_GL3", "")
 
 # Manually wrap any symbols since nimterop cannot or incorrectly wraps them
 cOverride:
   # Standard Nim code to wrap types, consts, procs, etc.
   type
-     NVGcontext* {.importc: "struct NVGcontext", bycopy.} = object
-     NVGcolor* {.importc: "struct NVGcolor", bycopy.} = object
-       r* {.importc: "r".}: cfloat
-       g* {.importc: "g".}: cfloat
-       b* {.importc: "b".}: cfloat
-       a* {.importc: "a".}: cfloat
+     NVGcontext* {.bycopy.} = object
+     NVGcolor* {.bycopy.} = object
+       r*: cfloat
+       g*: cfloat
+       b*: cfloat
+       a*: cfloat
 
 # Specify include directories for gcc and Nim
 cIncludeDir(srcDir/"src")
@@ -71,11 +74,14 @@ cIncludeDir(srcDir/"src")
 when defined(macosx):
   # cDefine("GLFW_INCLUDE_GLCOREARB", "1")
   when defined(useGlfw):
-    {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW -D_GLFW_USE_RETINA -D_GLFW_COCOA -D_GLFW_USE_CHDir -D_GLFW_USE_MENUBAR".}
-    {.passL: "-m64 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -lm".}
+    {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW -D_GLFW_USE_RETINA -D_GLFW_COCOA -D_GLFW_USE_CHDir -D_GLFW_USE_MENUBAR -Bstatic".}
+    #{.passL: "/usr/local/lib/libSDL2_gpu.a -m64 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -lm".}
   else:
     {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW".}
-    {.passL: "-m64 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -lm".}
+  when defined(nanovg_Static):
+    {.passL: "-m64 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -framework CoreAudio -lm".}
+  else:
+    {.passL: "-m64 -lSDL2 -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -framework CoreAudio -lm".}
 
 elif defined(unix):
   {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW".}
@@ -107,21 +113,20 @@ cPlugin:
   # Symbol renaming examples
   proc onSymbol*(sym: var Symbol) {.exportc, dynlib.} =
     # Get rid of leading and trailing underscores
-    # sym.name = sym.name.strip(chars = {'_'})
+    sym.name = sym.name.strip(chars = {'_'})
 
     # Remove prefixes or suffixes from procs
-    if sym.name.startsWith("nvg__"):
-      sym.name = sym.name.replace(re"nvg__", "")
+    sym.name = sym.name.replace(re"^nvg__", "")
 
     if sym.kind == nskProc:
-      sym.name = sym.name.replace(re"glnvg__", "")
-      sym.name = sym.name.replace(re"nvg__", "")
-      sym.name = sym.name.replace(re"nvglu", "")
-      sym.name = sym.name.replace(re"nvgl", "")
-      sym.name = sym.name.replace(re"nvg", "")
+      sym.name = sym.name.replace(re"^glnvg__", "")
+      sym.name = sym.name.replace(re"^nvg__", "")
+      sym.name = sym.name.replace(re"^nvglu", "")
+      sym.name = sym.name.replace(re"^nvgl", "")
+      sym.name = sym.name.replace(re"^nvg", "")
 
 # Finally import wrapped header file. Recurse if #include files should also
 # be wrapped. Set dynlib if binding to dynamic library.
-cImport(srcDir/"src/nanovg.h")
-cImport(srcDir/"src/nanovg_gl.h")
-cImport(srcDir/"src/nanovg_gl_utils.h")
+cImport(srcDir/"src/nanovg.h", flags = "-f=ast2")
+cImport(srcDir/"src/nanovg_gl.h", flags = "-f=ast2")
+cImport(srcDir/"src/nanovg_gl_utils.h", flags = "-f=ast2")

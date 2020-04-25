@@ -5,7 +5,6 @@ import perf
 import common
 
 proc main =
-  glfw.initialize()
   var c = DefaultOpenglWindowConfig
   c.version = glv32
   c.title = "Minimal Nim-GLFW example"
@@ -18,6 +17,7 @@ proc main =
     cpuGraph = newGraph(RenderStyle.MS, "CPU Time")
 
 
+  glfw.initialize()
   var w = newWindow(c)
   swapInterval(0)
   setTime(0)

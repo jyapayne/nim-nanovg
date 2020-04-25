@@ -21,9 +21,9 @@ export TransRGBAf
 #{.experimental: "dynamicBindSym".}
 
 type
-  FontLoadError* = object of Exception
-  ImageLoadError* = object of Exception
-  ContextInitError* = object of Exception
+  FontLoadError* = object of CatchableError
+  ImageLoadError* = object of CatchableError
+  ContextInitError* = object of CatchableError
   Context = ptr NVGContext
 
   Alignment* {.size: sizeof(cint), pure.} = enum
@@ -92,7 +92,13 @@ type
 
   TextRow* = tuple[x, y, minX, maxX, height: float]
 
-  ImageFlags* {.size: sizeof(cint).} = enum
+  FrameBuffer* = ptr NVGLUframebuffer
+
+  ImageFlagsGL* {.size: sizeof(cint), pure.} = enum
+    NONE = 0,
+    NO_DELETE = NVG_IMAGE_NODELETE
+
+  ImageFlags* {.size: sizeof(cint), pure.} = enum
     NONE = 0,
     GENERATE_MIPMAPS = NVG_IMAGE_GENERATE_MIPMAPS, ##  Generate mipmaps during creation of the image.
     REPEATX = NVG_IMAGE_REPEATX,  ##  Repeat image in X direction.
@@ -206,24 +212,24 @@ proc textAlign*(alignments: varargs[Alignment]) =
 macro textAlign*(descriptor: string) =
   result = createExpr("Alignment", "textAlign", descriptor)
 
-proc textBounds*(x, y: float, text: string): TextBounds =
+proc textBounds*(text: string, x, y: float): TextBounds =
   var res: array[4, cfloat]
   let horizonalAdvance = context.TextBounds(x, y, text, nil, res[0].addr)
 
   let bounds: Bounds = (res[0].float, res[1].float, res[2].float, res[3].float)
   return (horizonalAdvance.float, bounds)
 
-proc text*(x, y: float, content: string) =
-  discard context.Text(x, y, content, nil)
+proc text*(text: string, x, y: float) =
+  discard context.Text(x, y, text, nil)
 
-proc textBoxBounds*(x, y, breakRowWidth: float, text: string): Bounds =
+proc textBoxBounds*(text: string, x, y, breakRowWidth: float): Bounds =
   var res: array[4, cfloat]
   context.TextBoxBounds(x, y, breakRowWidth, text, nil, res[0].addr)
 
   return (res[0].float, res[1].float, res[2].float, res[3].float)
 
-proc textBox*(x, y, breakRowWidth: float, content: string) =
-  context.TextBox(x, y, breakRowWidth, content, nil)
+proc textBox*(text: string, x, y, breakRowWidth: float) =
+  context.TextBox(x, y, breakRowWidth, text, nil)
 
 proc textMetrics*(): TextMetrics =
   var
@@ -233,8 +239,7 @@ proc textMetrics*(): TextMetrics =
 
   return (ascender.float, descender.float, lineHeight.float)
 
-# TODO Continue with TextGlyphPos
-proc glyphPositions*(text: string, x, y: float): seq[GlyphPosition] =
+iterator glyphPositions(start: cstring, endPos: cstring, x, y: float): GlyphPosition =
   const maxPositions = 100
   var
     positions: array[maxPositions, NVGglyphPosition]
@@ -244,11 +249,11 @@ proc glyphPositions*(text: string, x, y: float): seq[GlyphPosition] =
     strIndex = 0
     lineHeight = textMetrics().lineHeight
 
-  result = newSeqOfCap[GlyphPosition](maxPositions)
+  let strLen = cast[ByteAddress](endPos) - cast[ByteAddress](start)
 
-  while (strIndex < text.len):
+  while (strIndex < strLen):
     numGlyphs = context.TextGlyphPositions(
-      lastX, y, cast[cstring](text[strIndex].unsafeAddr), nil,
+      lastX, y, cast[cstring](start[strIndex].unsafeAddr), endPos,
       positions[0].addr, maxPositions
     )
 
@@ -264,29 +269,66 @@ proc glyphPositions*(text: string, x, y: float): seq[GlyphPosition] =
 
         byteWidth = nextBaddr - baddr
       elif i == (numGlyphs - 1):
-        byteWidth = len(text) - bytesProcessed
+        byteWidth = strLen - bytesProcessed
 
       var glyph = newStringOfCap(byteWidth)
       for j in 0..<byteWidth:
         glyph.add(retPos.str[j])
 
-      let pos = GlyphPosition(
+      yield GlyphPosition(
         glyph: glyph, x: retPos.x, y: y, minX: retPos.minX, maxX: retPos.maxX,
         height: lineHeight
       )
 
-      result.add(pos)
       bytesProcessed += byteWidth
 
     lastX = positions[numGlyphs-1].x
     strIndex += maxPositions
 
-proc glyphPositions*(text: string, x, y, maxWidth: float): seq[GlyphPosition] =
-  const maxRows = 100
+proc glyphPositions*(text: string, x, y: float): seq[GlyphPosition] =
+  result = newSeqOfCap[GlyphPosition](100)
+  for gpos in glyphPositions(cast[cstring](text[0].unsafeAddr), nil, x, y):
+    result.add gpos
+
+proc glyphPositions*(row: NVGtextRow, x, y: float): seq[GlyphPosition] =
+  result = newSeqOfCap[GlyphPosition](100)
+  for gpos in glyphPositions(row.start, row.`end`, x, y):
+    result.add gpos
+
+iterator textRows(text: string, x, y, maxWidth: float): NVGtextRow =
+  const maxRows = 10
   var
     rows: array[maxRows, NVGtextRow]
+    numRows: int
+    start = cast[cstring](text[0].unsafeAddr)
 
-  
+  while true:
+    numRows = context.TextBreakLines(
+      start,
+      nil,
+      maxWidth, rows[0].addr, maxRows
+    )
+    if numRows == 0:
+      break
+    for i in 0 ..< numRows:
+      yield rows[i]
+
+    start = rows[numRows-1].next
+
+proc glyphPositions*(text: string, x, y, maxWidth: float): seq[GlyphPosition] =
+  var newY = y
+
+  for row in textRows(text, x, y, maxWidth):
+    let glyphPositions = row.glyphPositions(x, newY)
+    result.add(glyphPositions)
+    newY += glyphPositions[0].height
+
+proc text*(text: string, x, y, maxWidth: float) =
+  var newY = y
+
+  for row in textRows(text, x, y, maxWidth):
+    discard context.Text(x, newY, row.start, row.`end`)
+    newY += textMetrics().lineHeight
 
 proc beginFrame*(width, height, pxRatio: float) =
   context.BeginFrame(width, height, pxRatio)
@@ -424,12 +466,20 @@ proc setTransformIdentity*(dest: array[6, float]) =
   var dst = copyArray[array[6, float], array[6, cfloat]](dest)
   TransformIdentity(dst[0].addr)
 
-
 proc degreesToRadians*(degrees: float): float =
   return DegToRad(degrees)
 
 proc radiansToDegrees*(radians: float): float =
   return RadToDeg(radians)
+
+proc createFrameBuffer*(width, height: float, imageFlags: ImageFlagsGL = ImageFlagsGL.NONE): FrameBuffer =
+  return context.CreateFramebuffer(width.cint, height.cint, imageFlags.cint)
+
+proc binde*(fb: FrameBuffer) =
+  BindFramebuffer(fb)
+
+proc delete*(fb: FrameBuffer) =
+  fb.DeleteFramebuffer()
 
 # Images
 
