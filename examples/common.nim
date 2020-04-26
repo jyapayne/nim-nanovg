@@ -18,34 +18,34 @@ proc currentSourceDir*(): string {.inline.} =
 
 # Config
 
-proc drawLabel*(text: string, x, y, w, h: float) =
-  nanovg.setFontSize(50.0)
-  nanovg.setFont("sans")
-  nanovg.setFillColor(1.0, 1.0, 1.0, 1.0)
+proc drawLabel*(vg: Context, text: string, x, y, w, h: float) =
+  vg.setFontSize(50.0)
+  vg.setFont("sans")
+  vg.setFillColor(1.0, 1.0, 1.0, 1.0)
 
-  nanovg.textAlign("left middle")
-  nanovg.text(text, x, y+h*0.5)
+  vg.textAlign("left middle")
+  vg.text(text, x, y+h*0.5)
 
-proc drawWindow*(title: string, x, y, w, h: float) =
+proc drawWindow*(vg: Context, title: string, x, y, w, h: float) =
   let cornerRadius = 3.0
-  withState:
-    nanovg.beginPath()
-    nanovg.pathRoundedRect(x, y, w, h, cornerRadius)
-    #nanovg.setFillColor(rgba(255,255,255,192))
-    nanovg.setFillColor(rgba(28,30,34,192))
-    nanovg.pathFill()
+  withState(vg):
+    vg.beginPath()
+    vg.pathRoundedRect(x, y, w, h, cornerRadius)
+    #vg.setFillColor(rgba(255,255,255,192))
+    vg.setFillColor(rgba(28,30,34,192))
+    vg.pathFill()
 
-    nanovg.setFontSize(30.0)
-    nanovg.setFont("sans")
-    nanovg.textAlign("center middle")
+    vg.setFontSize(30.0)
+    vg.setFont("sans")
+    vg.textAlign("center middle")
 
-    nanovg.setFontBlur(2)
-    nanovg.setFillColor(rgba(0,0,0,128))
-    nanovg.text(title, x+w/2, y+16+1)
+    vg.setFontBlur(2)
+    vg.setFillColor(rgba(0,0,0,128))
+    vg.text(title, x+w/2, y+16+1)
 
-    nanovg.setFontBlur(0)
-    nanovg.setFillColor(rgba(220,220,220,160))
-    nanovg.text(title, x+w/2,y+16)
+    vg.setFontBlur(0)
+    vg.setFillColor(rgba(220,220,220,160))
+    vg.text(title, x+w/2,y+16)
 
 proc isBlack*(color: Color): bool =
   result = true
@@ -93,8 +93,8 @@ proc cpToUtf8*(code: int): string =
 
   return res
 
-proc drawButton*(text: string, x, y, width, height: float) =
-  let bg = linearGradient(
+proc drawButton*(vg: Context, text: string, x, y, width, height: float) =
+  let bg = vg.linearGradient(
     x, y, x, y+height,
     rgba(255, 255, 255, 16),
     rgba(100, 100, 100, 16)
@@ -109,28 +109,28 @@ proc drawButton*(text: string, x, y, width, height: float) =
   let drawShadow = true
 
   if drawShadow:
-    nanovg.beginPath()
-    nanovg.pathRoundedRect(x+1+shadowOffset, y+1+shadowOffset, width-2, height-2, radius)
-    nanovg.setFillColor(shadowColor)
-    nanovg.pathFill()
+    vg.beginPath()
+    vg.pathRoundedRect(x+1+shadowOffset, y+1+shadowOffset, width-2, height-2, radius)
+    vg.setFillColor(shadowColor)
+    vg.pathFill()
 
-  nanovg.beginPath()
-  nanovg.pathRoundedRect(x+1, y+1, width-2, height-2, radius)
-  nanovg.setFillColor(color)
-  nanovg.pathFill()
+  vg.beginPath()
+  vg.pathRoundedRect(x+1, y+1, width-2, height-2, radius)
+  vg.setFillColor(color)
+  vg.pathFill()
 
-  nanovg.setFillPaint(bg)
-  nanovg.pathFill()
+  vg.setFillPaint(bg)
+  vg.pathFill()
 
-  nanovg.beginPath()
-  nanovg.pathMoveTo(x+radius, y+lightWidth+1)
-  nanovg.setStrokeWidth(lightWidth)
-  nanovg.setStrokeColor(highlightColor)
-  nanovg.pathLineTo(x+width-(radius), y+lightWidth+1)
-  nanovg.pathStroke()
+  vg.beginPath()
+  vg.pathMoveTo(x+radius, y+lightWidth+1)
+  vg.setStrokeWidth(lightWidth)
+  vg.setStrokeColor(highlightColor)
+  vg.pathLineTo(x+width-(radius), y+lightWidth+1)
+  vg.pathStroke()
 
 
-proc drawButton*(preicon: string, text: string, x, y, w, h: float, color: Color) =
+proc drawButton*(vg: Context, preicon: string, text: string, x, y, w, h: float, color: Color) =
 
   var
     bg: Paint
@@ -140,50 +140,50 @@ proc drawButton*(preicon: string, text: string, x, y, w, h: float, color: Color)
     tw = 0.0
     iw = 0.0
 
-  bg = nanovg.linearGradient(
+  bg = vg.linearGradient(
     x,y,x,y+h,
     rgba(255,255,255, if isBlack(color): 16 else:32),
     rgba(0,0,0, if isBlack(color): 16 else:32)
   )
 
-  nanovg.beginPath()
-  nanovg.pathRoundedRect(x+1, y+1, w-2, h-2, cornerRadius-1)
+  vg.beginPath()
+  vg.pathRoundedRect(x+1, y+1, w-2, h-2, cornerRadius-1)
 
   if not isBlack(color):
-    nanovg.setFillColor(color)
-    nanovg.pathFill()
+    vg.setFillColor(color)
+    vg.pathFill()
 
-  nanovg.setFillPaint(bg)
-  nanovg.pathFill()
+  vg.setFillPaint(bg)
+  vg.pathFill()
 
-  nanovg.beginPath()
-  nanovg.pathRoundedRect(x+0.5, y+0.5, w-1, h-1, cornerRadius-0.5)
-  nanovg.setStrokeColor(rgba(0,0,0,48))
-  nanovg.pathStroke()
+  vg.beginPath()
+  vg.pathRoundedRect(x+0.5, y+0.5, w-1, h-1, cornerRadius-0.5)
+  vg.setStrokeColor(rgba(0,0,0,48))
+  vg.pathStroke()
 
-  nanovg.setFontSize(20.0)
-  nanovg.setFont("sans-bold")
-  tb = nanovg.textBounds(text, 0.0, 0.0)
+  vg.setFontSize(20.0)
+  vg.setFont("sans-bold")
+  tb = vg.textBounds(text, 0.0, 0.0)
   tw = tb.horizontalAdvance
 
-  nanovg.setFontSize(h*0.5)
-  nanovg.setFont("fa")
-  ib = nanovg.textBounds(preicon, 0, 0)
+  vg.setFontSize(h*0.5)
+  vg.setFont("fa")
+  ib = vg.textBounds(preicon, 0, 0)
   iw = ib.horizontalAdvance
   iw += h*0.15
 
-  nanovg.setFontSize(h*0.5)
-  nanovg.setFont("fa")
-  nanovg.setFillColor(rgba(255,255,255,96))
-  nanovg.textAlign("left middle")
-  nanovg.text(preicon, x+w*0.5-tw*0.5-iw*0.75, y+h*0.5)
+  vg.setFontSize(h*0.5)
+  vg.setFont("fa")
+  vg.setFillColor(rgba(255,255,255,96))
+  vg.textAlign("left middle")
+  vg.text(preicon, x+w*0.5-tw*0.5-iw*0.75, y+h*0.5)
 
-  nanovg.setFontSize(20.0)
-  nanovg.setFont("sans-bold")
-  nanovg.textAlign("left middle")
-  nanovg.setFillColor(rgba(0,0,0,160))
-  nanovg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5-1)
-  nanovg.setFillColor(rgba(255,255,255,160))
-  nanovg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5)
+  vg.setFontSize(20.0)
+  vg.setFont("sans-bold")
+  vg.textAlign("left middle")
+  vg.setFillColor(rgba(0,0,0,160))
+  vg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5-1)
+  vg.setFillColor(rgba(255,255,255,160))
+  vg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5)
 
 proc glewInit*() {.header:"<GL/glew.h>".}

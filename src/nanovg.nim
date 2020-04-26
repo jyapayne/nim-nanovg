@@ -24,7 +24,7 @@ type
   FontLoadError* = object of CatchableError
   ImageLoadError* = object of CatchableError
   ContextInitError* = object of CatchableError
-  Context = ptr NVGContext
+  Context* = ptr NVGContext
 
   Alignment* {.size: sizeof(cint), pure.} = enum
     NONE = 0
@@ -114,7 +114,7 @@ type
 proc width*(pos: GlyphPosition): float =
   return pos.maxX - pos.minX
 
-proc createExpr*(ty, name: string, descriptor: NimNode, args: varargs[NimNode]): NimNode =
+proc createExpr*(context: NimNode, ty, name: string, descriptor: NimNode, args: varargs[NimNode]): NimNode =
   let tokens = ($descriptor).toUpper().split(" ").map(
     proc(s: string): string =
       return ty & "." & s
@@ -127,7 +127,7 @@ proc createExpr*(ty, name: string, descriptor: NimNode, args: varargs[NimNode]):
 
   let allTokens = argTokens.concat(tokens)
 
-  let newExpr = name & "(" & allTokens.join(",") & ")"
+  let newExpr = name & "(" & $context.toStrLit & ", " & allTokens.join(",") & ")"
 
   result = parseStmt(newExpr)
 
@@ -140,7 +140,10 @@ template reduce[T](elements: openArray[T], op: untyped): untyped =
 
   res
 
-proc createContext(antialias = true, stencilStrokes = true, debugChecks = false): Context =
+proc delete*(context: Context) =
+  context.deleteGL3()
+
+proc newContext*(antialias = true, stencilStrokes = true, debugChecks = false): Context =
   var flags: cint
 
   if antialias:
@@ -155,83 +158,78 @@ proc createContext(antialias = true, stencilStrokes = true, debugChecks = false)
   if result.isNil:
     raise newException(ContextInitError, "Could not initialize graphics context")
 
-var context: Context
-
-proc init*() =
-  context = createContext()
-
-proc loadFont*(path, name: string): Font {.discardable.} =
+proc loadFont*(context: Context, path, name: string): Font {.discardable.} =
   ## Load the font from `path` and give it a `name` that can be used to reference it.
   result = context.createFont(name, path)
 
   if result == -1:
     raise newException(FontLoadError, fmt"Could not load font {name}.")
 
-proc loadFontMem*(data: openArray[uint8], name: string, freeDataAutomatically = true): Font {.discardable.} =
+proc loadFontMem*(context: Context, data: openArray[uint8], name: string, freeDataAutomatically = true): Font {.discardable.} =
   ## Load the font from `path` and give it a `name` that can be used to reference it.
   result = context.createFontMem(name, cast[ptr cuchar](data[0].unsafeAddr), data.len.cint, freeDataAutomatically.cint)
 
   if result == -1:
     raise newException(FontLoadError, fmt"Could not load font {name}.")
 
-proc findFont*(name: string): Font =
+proc findFont*(context: Context, name: string): Font =
   return context.findFont(name)
 
-proc setFallbackFont*(baseFont, fallbackFont: string): Font =
+proc setFallbackFont*(context: Context, baseFont, fallbackFont: string): Font =
   return context.addFallbackFont(baseFont, fallbackFont)
 
-proc setFallbackFont*(baseFont, fallbackFont: Font): Font =
+proc setFallbackFont*(context: Context, baseFont, fallbackFont: Font): Font =
   return context.addFallbackFontId(baseFont, fallbackFont)
 
-proc setFont*(font: Font) =
+proc `font=`*(context: Context, font: Font) =
   context.fontFaceId(font)
 
-proc setFont*(name: string) =
+proc setFont*(context: Context, name: string) =
   context.fontFace(name)
 
-proc setFontSize*(size: float) =
+proc setFontSize*(context: Context, size: float) =
   context.fontSize(size)
 
-proc setFontBlur*(blur: float) =
+proc setFontBlur*(context: Context, blur: float) =
   context.fontBlur(blur)
 
-proc setTextLetterSpacing*(spacing: float) =
+proc setTextLetterSpacing*(context: Context, spacing: float) =
   context.textLetterSpacing(spacing)
 
-proc setTextLineHeight*(lineHeight: float) =
+proc setTextLineHeight*(context: Context, lineHeight: float) =
   context.textLineHeight(lineHeight)
 
 proc `or`(align1: Alignment, align2: Alignment): Alignment =
   return (align1.cint or align2.cint).Alignment
 
-proc textAlign*(alignments: varargs[Alignment]) =
+proc textAlign*(context: Context, alignments: varargs[Alignment]) =
   var alignment = reduce(alignments, `or`)
 
   context.textAlign(alignment.cint)
 
-macro textAlign*(descriptor: string) =
-  result = createExpr("Alignment", "textAlign", descriptor)
+macro textAlign*(context: Context, descriptor: string) =
+  result = createExpr(context, "Alignment", "textAlign", descriptor)
 
-proc textBounds*(text: string, x, y: float): TextBounds =
+proc textBounds*(context: Context, text: string, x, y: float): TextBounds =
   var res: array[4, cfloat]
   let horizonalAdvance = context.textBounds(x, y, text, nil, res[0].addr)
 
   let bounds: Bounds = (res[0].float, res[1].float, res[2].float, res[3].float)
   return (horizonalAdvance.float, bounds)
 
-proc text*(text: string, x, y: float) =
+proc text*(context: Context, text: string, x, y: float) =
   discard context.text(x, y, text, nil)
 
-proc textBoxBounds*(text: string, x, y, breakRowWidth: float): Bounds =
+proc textBoxBounds*(context: Context, text: string, x, y, breakRowWidth: float): Bounds =
   var res: array[4, cfloat]
   context.textBoxBounds(x, y, breakRowWidth, text, nil, res[0].addr)
 
   return (res[0].float, res[1].float, res[2].float, res[3].float)
 
-proc textBox*(text: string, x, y, breakRowWidth: float) =
+proc textBox*(context: Context, text: string, x, y, breakRowWidth: float) =
   context.textBox(x, y, breakRowWidth, text, nil)
 
-proc textMetrics*(): TextMetrics =
+proc textMetrics*(context: Context): TextMetrics =
   var
     ascender, descender, lineHeight: cfloat
 
@@ -239,7 +237,7 @@ proc textMetrics*(): TextMetrics =
 
   return (ascender.float, descender.float, lineHeight.float)
 
-iterator glyphPositions(start: cstring, endPos: cstring, x, y: float): GlyphPosition =
+iterator glyphPositions(context: Context, start: cstring, endPos: cstring, x, y: float): GlyphPosition =
   const maxPositions = 100
   var
     positions: array[maxPositions, NVGglyphPosition]
@@ -247,7 +245,7 @@ iterator glyphPositions(start: cstring, endPos: cstring, x, y: float): GlyphPosi
     bytesProcessed = 0
     lastX = x
     strIndex = 0
-    lineHeight = textMetrics().lineHeight
+    lineHeight = context.textMetrics().lineHeight
 
   let strLen = cast[ByteAddress](endPos) - cast[ByteAddress](start)
 
@@ -285,17 +283,17 @@ iterator glyphPositions(start: cstring, endPos: cstring, x, y: float): GlyphPosi
     lastX = positions[numGlyphs-1].x
     strIndex += maxPositions
 
-proc glyphPositions*(text: string, x, y: float): seq[GlyphPosition] =
+proc glyphPositions*(context: Context, text: string, x, y: float): seq[GlyphPosition] =
   result = newSeqOfCap[GlyphPosition](100)
-  for gpos in glyphPositions(cast[cstring](text[0].unsafeAddr), nil, x, y):
+  for gpos in context.glyphPositions(cast[cstring](text[0].unsafeAddr), nil, x, y):
     result.add gpos
 
-proc glyphPositions*(row: NVGtextRow, x, y: float): seq[GlyphPosition] =
+proc glyphPositions*(context: Context, row: NVGtextRow, x, y: float): seq[GlyphPosition] =
   result = newSeqOfCap[GlyphPosition](100)
-  for gpos in glyphPositions(row.start, row.`end`, x, y):
+  for gpos in context.glyphPositions(row.start, row.`end`, x, y):
     result.add gpos
 
-iterator textRows(text: string, x, y, maxWidth: float): NVGtextRow =
+iterator textRows(context: Context, text: string, x, y, maxWidth: float): NVGtextRow =
   const maxRows = 10
   var
     rows: array[maxRows, NVGtextRow]
@@ -315,48 +313,43 @@ iterator textRows(text: string, x, y, maxWidth: float): NVGtextRow =
 
     start = rows[numRows-1].next
 
-proc glyphPositions*(text: string, x, y, maxWidth: float): seq[GlyphPosition] =
+proc glyphPositions*(context: Context, text: string, x, y, maxWidth: float): seq[GlyphPosition] =
   var newY = y
 
-  for row in textRows(text, x, y, maxWidth):
-    let glyphPositions = row.glyphPositions(x, newY)
+  for row in context.textRows(text, x, y, maxWidth):
+    let glyphPositions = context.glyphPositions(row, x, newY)
     result.add(glyphPositions)
     newY += glyphPositions[0].height
 
-proc text*(text: string, x, y, maxWidth: float) =
+proc text*(context: Context, text: string, x, y, maxWidth: float) =
   var newY = y
 
-  for row in textRows(text, x, y, maxWidth):
+  for row in context.textRows(text, x, y, maxWidth):
     discard context.text(x, newY, row.start, row.`end`)
-    newY += textMetrics().lineHeight
+    newY += context.textMetrics().lineHeight
 
-proc beginFrame*(width, height, pxRatio: float) =
-  context.beginFrame(width, height, pxRatio)
+export beginFrame
+export endFrame
+export cancelFrame
 
-proc cancelFrame*() =
-  context.cancelFrame()
-
-proc endFrame*() =
-  context.endFrame()
-
-proc globalCompositeOperation*(op: CompositeOperation) =
+proc globalCompositeOperation*(context: Context, op: CompositeOperation) =
   context.globalCompositeOperation(op.cint)
 
-proc globalCompositeBlendFunc*(sourceFactor, destFactor: BlendFactor) =
+proc globalCompositeBlendFunc*(context: Context, sourceFactor, destFactor: BlendFactor) =
   context.globalCompositeBlendFunc(sourceFactor.cint, destFactor.cint)
 
-proc globalCompositeBlendFuncSeparate*(srcRGB, destRGB, srcAlpha, destAlpha: BlendFactor) =
+proc globalCompositeBlendFuncSeparate*(context: Context, srcRGB, destRGB, srcAlpha, destAlpha: BlendFactor) =
   context.globalCompositeBlendFuncSeparate(srcRGB.cint, destRGB.cint, srcAlpha.cint, destAlpha.cint)
 
-template withFrame*(window: View, code: untyped) =
+template withFrame*(context: Context, window: View, code: untyped) =
   let
     winSize = window.size()
     fbSize = window.frameBufferSize()
     pxRatio = cfloat(fbSize.w) / cfloat(winSize.w)
 
-  beginFrame(winSize.w.cfloat, winSize.h.cfloat, pxRatio)
+  context.beginFrame(winSize.w.cfloat, winSize.h.cfloat, pxRatio)
   code
-  endFrame()
+  context.endFrame()
 
 
 #
@@ -366,98 +359,140 @@ template withFrame*(window: View, code: untyped) =
 # The state contains transform, fill and stroke styles, text and font styles,
 # and scissor clipping.
 #
-proc saveState*() =
+proc saveState*(context: Context, ) =
   ## Pushes and saves the current render state into a state stack.
   ## A matching restoreState() must be used to restore the state.
   context.save()
 
-proc restoreState*() =
+proc restoreState*(context: Context, ) =
   ## Pops and restores current render state.
   context.restore()
 
-proc resetState*() =
+proc resetState*(context: Context, ) =
   ## Resets current render state to default values. Does not affect the render state stack.
   context.reset()
 
-template withState*(code: untyped) =
-  saveState()
+template withState*(context: Context, code: untyped) =
+  context.saveState()
   try:
     code
   except:
     raise
   finally:
-    restoreState()
+    context.restoreState()
 
-proc setShapeAntialias*(enabled = true) =
+proc setShapeAntialias*(context: Context, enabled = true) =
   context.shapeAntiAlias(enabled.cint)
 
-proc setStrokeColor*(color: Color) =
+proc setStrokeColor*(context: Context, color: Color) =
   context.strokeColor(color)
 
-proc setStrokePaint*(paint: Paint) =
+proc setStrokePaint*(context: Context, paint: Paint) =
   context.strokePaint(paint)
 
-proc setFillPaint*(paint: Paint) =
+proc setFillPaint*(context: Context, paint: Paint) =
   context.fillPaint(paint)
 
-proc setFillColor*(color: Color) =
+proc setFillColor*(context: Context, color: Color) =
   context.fillColor(color)
 
-proc setFillColor*(r, g, b: uint8) =
+proc setFillColor*(context: Context, r, g, b: uint8) =
   context.fillColor(rgb(r.cuchar, g.cuchar, b.cuchar))
 
-proc setFillColor*(r, g, b: float) =
+proc setFillColor*(context: Context, r, g, b: float) =
   context.fillColor(rgbf(r, g, b))
 
-proc setFillColor*(r, g, b, a: float) =
+proc setFillColor*(context: Context, r, g, b, a: float) =
   context.fillColor(rgbaf(r, g, b, a))
 
-proc setFillColor*(r, g, b, a: uint8) =
+proc setFillColor*(context: Context, r, g, b, a: uint8) =
   context.fillColor(rgba(r.cuchar, g.cuchar, b.cuchar, a.cuchar))
 
-proc setMiterLimit*(limit: float) =
+proc setMiterLimit*(context: Context, limit: float) =
   context.miterLimit(limit)
 
-proc setStrokeWidth*(size: float) =
+proc setStrokeWidth*(context: Context, size: float) =
   context.strokeWidth(size)
 
-proc setLineCap*(cap: LineCap) =
+proc setLineCap*(context: Context, cap: LineCap) =
   context.lineCap(cap.cint)
 
-proc setLineJoin*(join: LineJoin) =
+proc setLineJoin*(context: Context, join: LineJoin) =
   context.lineJoin(join.cint)
 
-proc setGlobalAlpha*(alpha: float) =
+proc setGlobalAlpha*(context: Context, alpha: float) =
+  context.globalAlpha(alpha)
+
+proc `shapeAntialias=`*(context: Context, enabled: bool) =
+  context.shapeAntiAlias(enabled.cint)
+
+proc `strokeColor`*(context: Context, color: Color) =
+  context.strokeColor(color)
+
+proc `strokePaint=`*(context: Context, paint: Paint) =
+  context.strokePaint(paint)
+
+proc `fillPaint=`*(context: Context, paint: Paint) =
+  context.fillPaint(paint)
+
+proc `fillColor=`*(context: Context, color: Color) =
+  context.fillColor(color)
+
+proc `fillColor=`*(context: Context, color: tuple[r, g, b: uint8]) =
+  context.fillColor(rgb(color.r.cuchar, color.g.cuchar, color.b.cuchar))
+
+proc `fillColor=`*(context: Context, color: tuple[r, g, b: float]) =
+  context.fillColor(rgbf(color.r, color.g, color.b))
+
+proc `fillColor=`*(context: Context, color: tuple[r, g, b, a: float]) =
+  context.fillColor(rgbaf(color.r, color.g, color.b, color.a))
+
+proc setFillColor*(context: Context, color: tuple[r, g, b, a: uint8]) =
+  context.fillColor(rgba(color.r.cuchar, color.g.cuchar, color.b.cuchar, color.a.cuchar))
+
+proc `miterLimit=`*(context: Context, limit: float) =
+  context.miterLimit(limit)
+
+proc `strokeWidth=`*(context: Context, size: float) =
+  context.strokeWidth(size)
+
+proc `lineCap=`*(context: Context, cap: LineCap) =
+  context.lineCap(cap.cint)
+
+proc `lineJoin=`*(context: Context, join: LineJoin) =
+  context.lineJoin(join.cint)
+
+proc `globalAlpha=`*(context: Context, alpha: float) =
   context.globalAlpha(alpha)
 
 # Transforms
 
-proc resetTransform*() =
-  context.resetTransform()
+proc resetTransform*(context: Context) {.inline.} =
+  wrapper.resetTransform(context)
 
-proc transform*(a, b, c, d, e, f: float) =
-  context.transform(a, b, c, d, e, f)
+proc transform*(context: Context, a, b, c, d, e, f: float) =
+  wrapper.transform(context, a, b, c, d, e, f)
 
-proc translate*(x, y: float) =
-  context.translate(x, y)
+proc translate*(context: Context, x, y: float) {.inline.} =
+  wrapper.translate(context, x, y)
 
-proc rotate*(angle: float) =
-  context.rotate(angle)
+proc rotate*(context: Context, angle: float) {.inline.} =
+  wrapper.rotate(context, angle)
 
-proc skewX*(angle: float) =
-  context.skewX(angle)
+proc skewX*(context: Context, angle: float) {.inline.} =
+  wrapper.skewX(context, angle)
 
-proc skewY*(angle: float) =
-  context.skewY(angle)
+proc skewY*(context: Context, angle: float) {.inline.} =
+  wrapper.skewY(context, angle)
 
-proc scale*(x, y: float) =
-  context.scale(x, y)
+proc scale*(context: Context, x, y: float) {.inline.} =
+  wrapper.scale(context, x, y)
 
 proc copyArray[T, U](src: T): U =
   for i in 0..<src.len:
     result[i] = type(result[i])((src[i]))
 
-proc getCurrentTransform*(): array[6, float] =
+proc getCurrentTransform*(context: Context, ): array[6, float] =
   var res: array[6, cfloat]
   context.currentTransform(res[0].addr)
   return copyArray[array[6, cfloat], array[6, float]](res)
@@ -472,7 +507,7 @@ proc degreesToRadians*(degrees: float): float =
 proc radiansToDegrees*(radians: float): float =
   return radToDeg(radians)
 
-proc createFrameBuffer*(width, height: float, imageFlags: ImageFlagsGL = ImageFlagsGL.NONE): FrameBuffer =
+proc createFrameBuffer*(context: Context, width, height: float, imageFlags: ImageFlagsGL = ImageFlagsGL.NONE): FrameBuffer =
   return context.createFramebuffer(width.cint, height.cint, imageFlags.cint)
 
 proc binde*(fb: FrameBuffer) =
@@ -486,111 +521,101 @@ proc delete*(fb: FrameBuffer) =
 proc `or`(imageflags1: ImageFlags, imageflags2: ImageFlags): ImageFlags =
   return (imageflags1.cint or imageflags2.cint).ImageFlags
 
-proc loadImage*(fileName: string, flags: varargs[ImageFlags]): Image =
+proc loadImage*(context: Context, fileName: string, flags: varargs[ImageFlags]): Image =
   var flagArgs = reduce(flags, `or`)
   result = context.createImage(fileName, flagArgs.cint)
 
   if result == -1:
     raise newException(ImageLoadError, fmt"Could not load image {fileName}.")
 
-macro loadImage*(fileName, flags: string): Image =
-  return createExpr("ImageFlags", "loadImage", flags, fileName)
+macro loadImage*(context: Context, fileName, flags: string): Image =
+  return createExpr(context, "ImageFlags", "loadImage", flags, fileName)
 
-proc createImageFromArray*(data: openArray[uint8], flags: varargs[ImageFlags]): Image =
+proc createImageFromArray*(context: Context, data: openArray[uint8], flags: varargs[ImageFlags]): Image =
   var flagArgs = reduce(flags, `or`)
   result = context.createImageMem(flagArgs.cint, cast[ptr cuchar](data[0].unsafeAddr), data.len.cint)
 
   if result == -1:
     raise newException(ImageLoadError, fmt"Could not load image from data.")
 
-proc size*(image: Image): Size =
+proc size*(context: Context, image: Image): Size =
   var rw, rh: cint
   context.imageSize(image, rw.addr, rh.addr)
   result.width = rw
   result.height = rh
 
-proc delete*(image: Image) =
-  context.deleteImage(image)
+export deleteImage
+export beginPath
 
-# Paths
-proc beginPath*() =
-  context.beginPath()
-
-proc pathMoveTo*(x, y: float) =
+proc pathMoveTo*(context: Context, x, y: float) =
   context.moveTo(x, y)
 
-proc pathLineTo*(x, y: float) =
+proc pathLineTo*(context: Context, x, y: float) =
   context.lineTo(x, y)
 
-proc pathBezierTo*(c1x, c1y, c2x, c2y, x, y: float) =
+proc pathBezierTo*(context: Context, c1x, c1y, c2x, c2y, x, y: float) =
   context.bezierTo(c1x, c1y, c2x, c2y, x, y)
 
-proc pathQuadTo*(cx, cy, x, y: float) =
+proc pathQuadTo*(context: Context, cx, cy, x, y: float) =
   context.quadTo(cx, cy, x, y)
 
-proc pathArcTo*(x1, y1, x2, y2, radius: float) =
+proc pathArcTo*(context: Context, x1, y1, x2, y2, radius: float) =
   context.arcTo(x1, y1, x2, y2, radius)
 
-proc closePath*() =
-  context.closePath()
+export closePath
 
-proc pathWinding*(dir: Winding) =
+proc pathWinding*(context: Context, dir: Winding) =
   context.pathWinding(dir.cint)
 
-proc setSolidity*(solidity: Solidity) =
+proc `solidity=`*(context: Context, solidity: Solidity) =
   context.pathWinding(solidity.cint)
 
-proc pathArc*(cx, cy, r, a0, a1: float, dir: int) =
+proc pathArc*(context: Context, cx, cy, r, a0, a1: float, dir: int) =
   context.arc(cx, cy, r, a0, a1, dir.cint)
 
-proc pathRect*(x, y, width, height: float) =
+proc pathRect*(context: Context, x, y, width, height: float) =
   context.rect(x, y, width, height)
 
-proc pathRoundedRect*(x, y, width, height, radius: float) =
+proc pathRoundedRect*(context: Context, x, y, width, height, radius: float) =
   context.roundedRect(x, y, width, height, radius)
 
-proc pathRoundedRectVarying*(x, y, width, height, radiusTopLeft, radiusTopRight,
+proc pathRoundedRectVarying*(context: Context, x, y, width, height, radiusTopLeft, radiusTopRight,
                              radiusBottomRight, radiusBottomLeft: float) =
   context.roundedRectVarying(
     x, y, width, height,
     radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft
   )
 
-proc pathEllipse*(cx, cy, radiusX, radiusY: float) =
+proc pathEllipse*(context: Context, cx, cy, radiusX, radiusY: float) =
   context.ellipse(cx, cy, radiusX, radiusY)
 
-proc pathCircle*(cx, cy, radius: float) =
+proc pathCircle*(context: Context, cx, cy, radius: float) =
   context.circle(cx, cy, radius)
 
-proc pathFill*() =
+proc pathFill*(context: Context) =
   context.fill()
 
-proc pathStroke*() =
+proc pathStroke*(context: Context) =
   context.stroke()
 
-proc linearGradient*(startX, startY, endX, endY: float, startColor, endColor: Color): Paint =
-  result = context.linearGradient(startX, startY, endX, endY, startColor, endColor)
+proc linearGradient*(context: Context, startX, startY, endX, endY: float, startColor, endColor: Color): Paint =
+  result = wrapper.linearGradient(context, startX, startY, endX, endY, startColor, endColor)
 
-proc boxGradient*(x, y, width, height, radius, feather: float, startColor, endColor: Color): Paint =
-  result = context.boxGradient(x, y, width, height, radius, feather, startColor, endColor)
+proc boxGradient*(context: Context, x, y, width, height, radius, feather: float, startColor, endColor: Color): Paint =
+  result = wrapper.boxGradient(context, x, y, width, height, radius, feather, startColor, endColor)
 
-proc radialGradient*(centerX, centerY, innerRadius, outerRadius: float, startColor, endColor: Color): Paint =
-  result = context.radialGradient(centerX, centerY, innerRadius, outerRadius, startColor, endColor)
+proc radialGradient*(context: Context, centerX, centerY, innerRadius, outerRadius: float, startColor, endColor: Color): Paint =
+  result = wrapper.radialGradient(context, centerX, centerY, innerRadius, outerRadius, startColor, endColor)
 
-proc imagePattern*(originX, originY, renderSizeX, renderSizeY, angle: float, image: Image, alpha: float): Paint =
-  result = context.imagePattern(originX, originY, renderSizeX, renderSizeY, angle, image, alpha)
+proc imagePattern*(context: Context, originX, originY, renderSizeX, renderSizeY, angle: float, image: Image, alpha: float): Paint =
+  result = wrapper.imagePattern(context, originX, originY, renderSizeX, renderSizeY, angle, image, alpha)
 
-proc setScissor*(x, y, width, height: float) =
+proc setScissor*(context: Context, x, y, width, height: float) =
   context.scissor(x, y, width, height)
 
-proc intersectScissor*(x, y, width, height: float) =
+proc intersectScissor*(context: Context, x, y, width, height: float) =
   context.intersectScissor(x, y, width, height)
 
-proc resetScissor*() =
+proc resetScissor*(context: Context) =
   context.resetScissor()
 
-proc cleanup() {.noconv.} =
-  echo "running cleanup"
-  context.deleteGL3()
-
-addQuitProc(cleanup)
