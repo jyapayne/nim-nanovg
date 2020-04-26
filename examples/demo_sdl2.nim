@@ -90,8 +90,8 @@ proc main() =
       let x = glyphPositions("Some仮名thing is up", 0, 0)
       drawWindow("Title", 50, 50, 300, 400)
       drawLabel("Hello!", 10, 10, 280, 20)
-      drawButton(ICON_TRASH, "Delete", 100, 200, 160, 28, RGBA(128, 16, 8, 255))
-      drawButton(ICON_TRASH, "Deleter", 100, 250, 160, 28, RGBA(12, 130, 80, 255))
+      drawButton(ICON_TRASH, "Delete", 100, 200, 160, 28, rgba(128, 16, 8, 255))
+      drawButton(ICON_TRASH, "Deleter", 100, 250, 160, 28, rgba(12, 130, 80, 255))
       drawButton("Testing", 100, 300, 160, 28)
 
       fps.render(5, 5)
