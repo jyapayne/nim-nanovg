@@ -31,8 +31,8 @@ proc drawWindow*(title: string, x, y, w, h: float) =
   withState:
     nanovg.beginPath()
     nanovg.pathRoundedRect(x, y, w, h, cornerRadius)
-    #nanovg.setFillColor(RGBA(255,255,255,192))
-    nanovg.setFillColor(RGBA(28,30,34,192))
+    #nanovg.setFillColor(rgba(255,255,255,192))
+    nanovg.setFillColor(rgba(28,30,34,192))
     nanovg.pathFill()
 
     nanovg.setFontSize(30.0)
@@ -40,11 +40,11 @@ proc drawWindow*(title: string, x, y, w, h: float) =
     nanovg.textAlign("center middle")
 
     nanovg.setFontBlur(2)
-    nanovg.setFillColor(RGBA(0,0,0,128))
+    nanovg.setFillColor(rgba(0,0,0,128))
     nanovg.text(title, x+w/2, y+16+1)
 
     nanovg.setFontBlur(0)
-    nanovg.setFillColor(RGBA(220,220,220,160))
+    nanovg.setFillColor(rgba(220,220,220,160))
     nanovg.text(title, x+w/2,y+16)
 
 proc isBlack*(color: Color): bool =
@@ -96,13 +96,13 @@ proc cpToUtf8*(code: int): string =
 proc drawButton*(text: string, x, y, width, height: float) =
   let bg = linearGradient(
     x, y, x, y+height,
-    RGBA(255, 255, 255, 16),
-    RGBA(100, 100, 100, 16)
+    rgba(255, 255, 255, 16),
+    rgba(100, 100, 100, 16)
   )
 
-  let color = RGBA(29, 100, 210, 255)
-  let shadowColor = RGBA(0, 0, 0, 90)
-  let highlightColor = RGBA(255, 255, 255, 100)
+  let color = rgba(29, 100, 210, 255)
+  let shadowColor = rgba(0, 0, 0, 90)
+  let highlightColor = rgba(255, 255, 255, 100)
   let radius = 3.0
   let lightWidth = 0.5
   let shadowOffset = 3.0
@@ -142,8 +142,8 @@ proc drawButton*(preicon: string, text: string, x, y, w, h: float, color: Color)
 
   bg = nanovg.linearGradient(
     x,y,x,y+h,
-    RGBA(255,255,255, if isBlack(color): 16 else:32),
-    RGBA(0,0,0, if isBlack(color): 16 else:32)
+    rgba(255,255,255, if isBlack(color): 16 else:32),
+    rgba(0,0,0, if isBlack(color): 16 else:32)
   )
 
   nanovg.beginPath()
@@ -158,7 +158,7 @@ proc drawButton*(preicon: string, text: string, x, y, w, h: float, color: Color)
 
   nanovg.beginPath()
   nanovg.pathRoundedRect(x+0.5, y+0.5, w-1, h-1, cornerRadius-0.5)
-  nanovg.setStrokeColor(RGBA(0,0,0,48))
+  nanovg.setStrokeColor(rgba(0,0,0,48))
   nanovg.pathStroke()
 
   nanovg.setFontSize(20.0)
@@ -174,16 +174,16 @@ proc drawButton*(preicon: string, text: string, x, y, w, h: float, color: Color)
 
   nanovg.setFontSize(h*0.5)
   nanovg.setFont("fa")
-  nanovg.setFillColor(RGBA(255,255,255,96))
+  nanovg.setFillColor(rgba(255,255,255,96))
   nanovg.textAlign("left middle")
   nanovg.text(preicon, x+w*0.5-tw*0.5-iw*0.75, y+h*0.5)
 
   nanovg.setFontSize(20.0)
   nanovg.setFont("sans-bold")
   nanovg.textAlign("left middle")
-  nanovg.setFillColor(RGBA(0,0,0,160))
+  nanovg.setFillColor(rgba(0,0,0,160))
   nanovg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5-1)
-  nanovg.setFillColor(RGBA(255,255,255,160))
+  nanovg.setFillColor(rgba(255,255,255,160))
   nanovg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5)
 
 proc glewInit*() {.header:"<GL/glew.h>".}

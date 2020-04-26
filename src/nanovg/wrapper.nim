@@ -110,20 +110,27 @@ cCompile(srcDir/"src/*.c")
 cPlugin:
   import strutils, regex
 
+  const replacements = [
+    re"^glnvg__(.)",
+    re"^nvg__(.)",
+    re"^nvglu(.)",
+    re"^nvgl(.)",
+    re"^nvg(.)",
+  ]
+
+  proc firstLetterLower(m: RegexMatch, s: string): string =
+    if m.groupsCount > 0 and m.group(0).len > 0:
+      return s[m.group(0)[0]].toLowerAscii
+
   # Symbol renaming examples
   proc onSymbol*(sym: var Symbol) {.exportc, dynlib.} =
     # Get rid of leading and trailing underscores
     sym.name = sym.name.strip(chars = {'_'})
 
     # Remove prefixes or suffixes from procs
-    sym.name = sym.name.replace(re"^nvg__", "")
-
     if sym.kind == nskProc:
-      sym.name = sym.name.replace(re"^glnvg__", "")
-      sym.name = sym.name.replace(re"^nvg__", "")
-      sym.name = sym.name.replace(re"^nvglu", "")
-      sym.name = sym.name.replace(re"^nvgl", "")
-      sym.name = sym.name.replace(re"^nvg", "")
+      for rep in replacements:
+        sym.name = sym.name.replace(rep, firstLetterLower)
 
 # Finally import wrapped header file. Recurse if #include files should also
 # be wrapped. Set dynlib if binding to dynamic library.
