@@ -91,12 +91,12 @@ proc main() =
   gpu.setRequiredFeatures(gpu.FEATURE_BASIC_SHADERS)
 
 
-  nanovg.init()
+  let vg = nanovg.newContext()
   discard sdl.glSetSwapInterval(0)
-  nanovg.loadFont(currentSourceDir()/"resources/Roboto-Regular.ttf", "sans")
-  nanovg.loadFont(currentSourceDir()/"resources/Roboto-Bold.ttf", "sans-bold")
-  nanovg.loadFont(currentSourceDir()/"resources/fa.ttf", "fa")
-  nanovg.loadFont(currentSourceDir()/"resources/entypo.ttf", "icons")
+  vg.loadFont(currentSourceDir()/"resources/umeboshi.ttf", "sans")
+  vg.loadFont(currentSourceDir()/"resources/Roboto-Bold.ttf", "sans-bold")
+  vg.loadFont(currentSourceDir()/"resources/fa.ttf", "fa")
+  vg.loadFont(currentSourceDir()/"resources/entypo.ttf", "icons")
 
   var done = false
   var prevt: float = sdl.getTicks().float/1000.0
@@ -122,18 +122,18 @@ proc main() =
 
     gpu.flushBlitBuffer()
 
-    withFrame(window):
-      text("Some仮名thing is up", 100, 100, 100)
-      drawWindow("Title", 50, 50, 300, 400)
-      drawLabel("Hello!", 10, 10, 500, 20)
-      drawButton(ICON_TRASH, "Delete", 100, 200, 160, 28, rgba(128, 16, 8, 255))
-      drawButton(ICON_TRASH, "Deleter", 100, 250, 160, 28, rgba(12, 130, 80, 255))
-      drawButton("Testing", 100, 300, 160, 28)
+    withFrame(vg, window):
+      vg.text("Some仮名thing is up", 100, 100, 100)
+      vg.drawWindow("Title", 50, 50, 300, 400)
+      vg.drawLabel("Hello!", 10, 10, 500, 20)
+      vg.drawButton(ICON_TRASH, "Delete", 100, 200, 160, 28, rgba(128, 16, 8, 255))
+      vg.drawButton(ICON_TRASH, "Deleter", 100, 250, 160, 28, rgba(12, 130, 80, 255))
+      vg.drawButton("Testing", 100, 300, 160, 28)
 
     gpu.resetRendererState()
 
-    fps.render(5, 5)
-    cpuGraph.render(210, 5)
+    vg.render(fps, 5, 5)
+    vg.render(cpuGraph, 210, 5)
 
 
     gpu.flip(screen)
@@ -149,6 +149,7 @@ proc main() =
 
     done = events()
   gpu.freeImage(image)
+  vg.delete()
   gpu.quit()
 
 main()

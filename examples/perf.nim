@@ -32,19 +32,19 @@ proc getGraphAverage(graph: PerfGraph): float =
 
   return avg / GRAPH_HISTORY_COUNT.float
 
-proc render*(graph: PerfGraph, x, y: float) =
+proc render*(vg: Context, graph: PerfGraph, x, y: float) =
   let
     avg = getGraphAverage(graph)
     width: float = 200
     height: float = 35
 
-  nanovg.beginPath()
-  nanovg.pathRect(x, y, width, height)
-  nanovg.setFillColor(0, 0, 0, 128)
-  nanovg.pathFill()
+  vg.beginPath()
+  vg.pathRect(x, y, width, height)
+  vg.setFillColor(0, 0, 0, 128)
+  vg.pathFill()
 
-  nanovg.beginPath()
-  nanovg.pathMoveTo(x, y+height)
+  vg.beginPath()
+  vg.pathMoveTo(x, y+height)
 
   case graph.style:
     of RenderStyle.FPS:
@@ -58,7 +58,7 @@ proc render*(graph: PerfGraph, x, y: float) =
         vx = x + (i/(GRAPH_HISTORY_COUNT-1)) * width
         vy = y + height - ((v / 80) * height)
 
-        nanovg.pathLineTo(vx, vy)
+        vg.pathLineTo(vx, vy)
 
     of RenderStyle.PERCENT:
       for i in 0 ..< GRAPH_HISTORY_COUNT:
@@ -71,7 +71,7 @@ proc render*(graph: PerfGraph, x, y: float) =
         vx = x + (i/(GRAPH_HISTORY_COUNT-1)) * width
         vy = y + height - ((v / 100) * height)
 
-        nanovg.pathLineTo(vx, vy)
+        vg.pathLineTo(vx, vy)
 
     of RenderStyle.MS:
       for i in 0 ..< GRAPH_HISTORY_COUNT:
@@ -84,40 +84,40 @@ proc render*(graph: PerfGraph, x, y: float) =
         vx = x + (i/(GRAPH_HISTORY_COUNT-1)) * width
         vy = y + height - ((v / 20) * height)
 
-        nanovg.pathLineTo(vx, vy)
+        vg.pathLineTo(vx, vy)
 
-  nanovg.pathLineTo(x+width, y+height)
-  nanovg.setFillColor(255, 192, 0, 128)
-  nanovg.pathFill()
+  vg.pathLineTo(x+width, y+height)
+  vg.setFillColor(255, 192, 0, 128)
+  vg.pathFill()
 
-  nanovg.setFont("sans")
+  vg.setFont("sans")
 
   if graph.name.len() > 0:
-    nanovg.setFontSize(14)
-    nanovg.textAlign("top left")
-    nanovg.setFillColor(240, 240, 240, 192)
-    nanovg.text(graph.name, x+3, y+1)
+    vg.setFontSize(14)
+    vg.textAlign("top left")
+    vg.setFillColor(240, 240, 240, 192)
+    vg.text(graph.name, x+3, y+1)
 
-  nanovg.setFontSize(18)
-  nanovg.textAlign("top right")
-  nanovg.setFillColor(240, 240, 240, 255)
+  vg.setFontSize(18)
+  vg.textAlign("top right")
+  vg.setFillColor(240, 240, 240, 255)
 
   case graph.style:
     of RenderStyle.FPS:
       var str = fmt"{1.0/avg:.2f} FPS"
 
-      nanovg.text(str, x+width-3, y+1)
-      nanovg.setFontSize(15)
-      nanovg.textAlign("bottom right")
-      nanovg.setFillColor(240, 240, 240, 160)
+      vg.text(str, x+width-3, y+1)
+      vg.setFontSize(15)
+      vg.textAlign("bottom right")
+      vg.setFillColor(240, 240, 240, 160)
 
       str = fmt"{avg*1000:.2f} ms"
-      nanovg.text(str, x+width-3, y+height-1)
+      vg.text(str, x+width-3, y+height-1)
 
     of RenderStyle.PERCENT:
       let str = fmt"{avg:.1f} %"
-      nanovg.text(str, x+width-3, y+1)
+      vg.text(str, x+width-3, y+1)
 
     of RenderStyle.MS:
       let str = fmt"{avg*1000:.2f} ms"
-      nanovg.text(str, x+width-3, y+1)
+      vg.text(str, x+width-3, y+1)

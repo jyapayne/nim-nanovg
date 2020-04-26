@@ -71,11 +71,11 @@ proc main() =
   var prevt: float = sdl.getTicks().float/1000.0
 
   glewInit()
-  nanovg.init()
-  nanovg.loadFont(currentSourceDir()/"resources/Roboto-Regular.ttf", "sans")
-  nanovg.loadFont(currentSourceDir()/"resources/Roboto-Bold.ttf", "sans-bold")
-  nanovg.loadFont(currentSourceDir()/"resources/fa.ttf", "fa")
-  nanovg.loadFont(currentSourceDir()/"resources/entypo.ttf", "icons")
+  let vg = nanovg.newContext()
+  vg.loadFont(currentSourceDir()/"resources/Roboto-Regular.ttf", "sans")
+  vg.loadFont(currentSourceDir()/"resources/Roboto-Bold.ttf", "sans-bold")
+  vg.loadFont(currentSourceDir()/"resources/fa.ttf", "fa")
+  vg.loadFont(currentSourceDir()/"resources/entypo.ttf", "icons")
 
   while not done:
     let fbSize = window.frameBufferSize()
@@ -86,16 +86,16 @@ proc main() =
     glClearColor(0.3, 0.3, 0.32, 1.0)
     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
 
-    withFrame(window):
-      let x = glyphPositions("Some仮名thing is up", 0, 0)
-      drawWindow("Title", 50, 50, 300, 400)
-      drawLabel("Hello!", 10, 10, 280, 20)
-      drawButton(ICON_TRASH, "Delete", 100, 200, 160, 28, rgba(128, 16, 8, 255))
-      drawButton(ICON_TRASH, "Deleter", 100, 250, 160, 28, rgba(12, 130, 80, 255))
-      drawButton("Testing", 100, 300, 160, 28)
+    vg.withFrame(window):
+      let x = glyphPositions(vg, "Some仮名thing is up", 0, 0)
+      vg.drawWindow("Title", 50, 50, 300, 400)
+      vg.drawLabel("Hello!", 10, 10, 280, 20)
+      vg.drawButton(ICON_TRASH, "Delete", 100, 200, 160, 28, rgba(128, 16, 8, 255))
+      vg.drawButton(ICON_TRASH, "Deleter", 100, 250, 160, 28, rgba(12, 130, 80, 255))
+      vg.drawButton("Testing", 100, 300, 160, 28)
 
-      fps.render(5, 5)
-      cpuGraph.render(210, 5)
+      vg.render(fps, 5, 5)
+      vg.render(cpuGraph, 210, 5)
 
     let t: float = sdl.getTicks().float/1000.0
     let dt = t - prevt
@@ -112,6 +112,7 @@ proc main() =
 
   sdl.glDeleteContext(context)
   window.destroyWindow()
+  vg.delete()
   img.quit()
   sdl.quit()
 
