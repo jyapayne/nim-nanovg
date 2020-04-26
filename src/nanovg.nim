@@ -1,6 +1,5 @@
 import macros
 import sequtils
-import typetraits
 import strutils
 import strformat
 import nanovg/wrapper
