@@ -58,6 +58,10 @@ task buildSDL2ExampleDebug, "Build SDL2 example debug":
 
 task buildSDL2GPUExample, "Build SDL2 GPU example":
   let buildDir = setupSDL2()
+  exec "nimble c --app:gui -d:release -d:danger -o:" & buildDir & "/" & "demo_sdl2_gpu".toExe & " -r examples/demo_sdl2_gpu.nim"
+
+task buildSDL2GPUExampleDebug, "Build SDL2 GPU debug example":
+  let buildDir = setupSDL2()
   exec "nimble c --app:gui --debugger:native -o:" & buildDir & "/" & "demo_sdl2_gpu".toExe & " -r examples/demo_sdl2_gpu.nim"
 
 task buildGLFWExample, "Build GLFW example":
