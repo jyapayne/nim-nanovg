@@ -39,6 +39,20 @@
                 "cwd": "${workspaceRoot}",
                 "gdbpath": "${workspaceFolder}\\nim-gdb.bat",
             }
+        },
+        {
+            "name": "Nim Debug SDL2 GPU",
+            "type": "gdb",
+            "request": "launch",
+            "valuesFormatting": "parseText",
+            "target": "${workspaceFolder}/build/demosdl2/demo_sdl2_gpu_debug",
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "${workspaceFolder}/nim-gdb.bash",
+            "windows": {
+                "target": "${workspaceFolder}\\build\\demosdl2\\demo_sdl2_gpu_debug.exe",
+                "cwd": "${workspaceRoot}",
+                "gdbpath": "${workspaceFolder}\\nim-gdb.bat",
+            }
         }
     ]
 }

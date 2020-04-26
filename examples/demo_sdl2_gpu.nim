@@ -59,9 +59,6 @@ template generateFbo(width, height: float, code: untyped): gpu.Image =
   fb.delete()
   res
 
-proc windowID*(target: ptr Target): uint32 {.
-    cdecl, importc: "GPU_getWindowID".}
-
 proc main() =
   let
     fps = newGraph(RenderStyle.FPS, "Frame Time")
