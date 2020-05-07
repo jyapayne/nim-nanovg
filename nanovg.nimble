@@ -10,10 +10,10 @@ srcDir        = "src"
 
 requires "nim >= 1.0.6",
          "nimterop#head",
-         "regex >= 0.12.0",
-         "opengl >= 1.2.2",
+         "regex >= 0.14.1",
+         "opengl >= 1.2.6",
          "nim-glfw#head",
-         "sdl2"
+         "nim_sdl2"
 
 import os
 

@@ -1,4 +1,4 @@
-import sdl2 as sdl
+import sdl2/sdl2 as sdl
 import sdl2/sdl2_gpu as gpu
 import opengl
 
