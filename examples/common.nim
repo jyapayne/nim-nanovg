@@ -8,6 +8,7 @@ type
     cornerRadiusBottomLeft*: float
     cornerRadiusBottomRight*: float
 
+# To see icons in code, use a nerd font
 const ICON_TRASH* = ""
 const ICON_SEARCH* = "🔍"
 const ICON_CIRCLED_CROSS* = "✖"
@@ -187,3 +188,31 @@ proc drawButton*(vg: Context, preicon: string, text: string, x, y, w, h: float, 
   vg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5-1)
   vg.setFillColor(rgba(255,255,255,160))
   vg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5)
+
+proc drawSearchBox*(vg: Context, text: string, x, y, w, h: float) =
+  let cornerRadius = h/2 - 1
+
+  let bg = vg.boxGradient(x, y+1.5, w, h, h/2, 5, rgba(0, 0, 0, 16), rgba(0, 0, 0, 92))
+  vg.beginPath()
+  vg.pathRoundedRect(x,y, w,h, cornerRadius)
+  vg.setFillPaint(bg)
+  vg.pathFill()
+
+  vg.setFontSize(h*1.3)
+  vg.setFont("icons")
+  vg.setFillColor(rgba(255,255,255,64))
+  vg.textAlign("center middle")
+  vg.text(ICON_SEARCH, x+h*0.55f, y+h*0.55f)
+
+  vg.setFontSize(20.0f)
+  vg.setFont("sans")
+  vg.setFillColor(rgba(255,255,255,32))
+
+  vg.textAlign("left middle")
+  vg.text(text, x+h*1.05f,y+h*0.5f)
+
+  vg.setFontSize(h*1.3f)
+  vg.setFont("icons")
+  vg.setFillColor(rgba(255,255,255,32))
+  vg.textAlign("center middle")
+  vg.text(ICON_CIRCLED_CROSS, x+w-h*0.55f, y+h*0.55f)
