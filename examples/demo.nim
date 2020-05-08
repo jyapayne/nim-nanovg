@@ -1,6 +1,6 @@
 import os
 import nanovg
-import glfw, opengl
+import glfw, glew
 import perf
 import common
 
