@@ -22,7 +22,7 @@ proc main =
   swapInterval(0)
   setTime(0)
 
-  glewInit()
+  glew.init()
   let vg = nanovg.newContext()
   vg.loadFont(currentSourceDir()/"resources/Roboto-Regular.ttf", "sans")
   vg.loadFont(currentSourceDir()/"resources/Roboto-Bold.ttf", "sans-bold")
