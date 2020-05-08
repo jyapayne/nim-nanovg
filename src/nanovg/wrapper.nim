@@ -1,6 +1,6 @@
 import os
-import opengl
 import strutils
+import glew
 
 import nimterop/[cimport, build]
 
@@ -26,7 +26,7 @@ src/*.h
 src/*.c
 """, checkout = "1f9c8864fc556a1be4d4bf1d6bfe20cde25734b4")
 
-  let contents = readFile(srcDir/"src/nanovg_gl.h")
+  let contents = readFile(srcDir/"src"/"nanovg_gl.h")
   when defined(useGlfw):
     let newContents = contents.replace("#define NANOVG_GL_H", """
 #define NANOVG_GL_H
@@ -79,9 +79,9 @@ when defined(macosx):
   else:
     {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW".}
   when defined(nanovg_Static):
-    {.passL: "-m64 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -framework CoreAudio -lm".}
+    {.passL: "-m64 -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -framework CoreAudio -lm".}
   else:
-    {.passL: "-m64 -lSDL2 -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -framework CoreAudio -lm".}
+    {.passL: "-m64 -lSDL2 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -framework CoreAudio -lm".}
 
 elif defined(unix):
   {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW".}
@@ -134,6 +134,6 @@ cPlugin:
 
 # Finally import wrapped header file. Recurse if #include files should also
 # be wrapped. Set dynlib if binding to dynamic library.
-cImport(srcDir/"src/nanovg.h", flags = "-f=ast2")
-cImport(srcDir/"src/nanovg_gl.h", flags = "-f=ast2")
-cImport(srcDir/"src/nanovg_gl_utils.h", flags = "-f=ast2")
+cImport(srcDir/"src"/"nanovg.h", flags = "-f=ast2")
+cImport(srcDir/"src"/"nanovg_gl.h", flags = "-f=ast2")
+cImport(srcDir/"src"/"nanovg_gl_utils.h", flags = "-f=ast2")

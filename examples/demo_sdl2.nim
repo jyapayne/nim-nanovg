@@ -1,5 +1,5 @@
 import sdl2/sdl2 as sdl
-import sdl2/sdl2_image as img, opengl
+import sdl2/sdl2_image as img, glew
 
 import os
 import nanovg
@@ -72,10 +72,10 @@ proc main() =
 
   glewInit()
   let vg = nanovg.newContext()
-  vg.loadFont(currentSourceDir()/"resources/Roboto-Regular.ttf", "sans")
-  vg.loadFont(currentSourceDir()/"resources/Roboto-Bold.ttf", "sans-bold")
-  vg.loadFont(currentSourceDir()/"resources/fa.ttf", "fa")
-  vg.loadFont(currentSourceDir()/"resources/entypo.ttf", "icons")
+  vg.loadFont(currentSourceDir()/"resources"/"Roboto-Regular.ttf", "sans")
+  vg.loadFont(currentSourceDir()/"resources"/"Roboto-Bold.ttf", "sans-bold")
+  vg.loadFont(currentSourceDir()/"resources"/"fa.ttf", "fa")
+  vg.loadFont(currentSourceDir()/"resources"/"entypo.ttf", "icons")
 
   while not done:
     let fbSize = window.frameBufferSize()
@@ -87,7 +87,7 @@ proc main() =
     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
 
     vg.withFrame(window):
-      let x = glyphPositions(vg, "Some仮名thing is up", 0, 0)
+      vg.text("Some仮名thing is up", 100, 100, 100)
       vg.drawWindow("Title", 50, 50, 300, 400)
       vg.drawLabel("Hello!", 10, 10, 280, 20)
       vg.drawButton(ICON_TRASH, "Delete", 100, 200, 160, 28, rgba(128, 16, 8, 255))

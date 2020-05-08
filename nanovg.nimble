@@ -13,7 +13,8 @@ requires "nim >= 1.0.6",
          "regex >= 0.14.1",
          "opengl >= 1.2.6",
          "nim-glfw#head",
-         "nim_sdl2"
+         "nim_sdl2",
+         "glew"
 
 import os
 

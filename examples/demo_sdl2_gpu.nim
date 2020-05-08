@@ -1,6 +1,6 @@
 import sdl2/sdl2 as sdl
 import sdl2/sdl2_gpu as gpu
-import opengl
+import glew
 
 import os
 import nanovg
