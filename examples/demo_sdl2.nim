@@ -70,7 +70,7 @@ proc main() =
   var done = false
   var prevt: float = sdl.getTicks().float/1000.0
 
-  glewInit()
+  discard glew.init()
   let vg = nanovg.newContext()
   vg.loadFont(currentSourceDir()/"resources"/"Roboto-Regular.ttf", "sans")
   vg.loadFont(currentSourceDir()/"resources"/"Roboto-Bold.ttf", "sans-bold")

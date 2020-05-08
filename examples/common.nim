@@ -8,25 +8,27 @@ type
     cornerRadiusBottomLeft*: float
     cornerRadiusBottomRight*: float
 
-# const ICON_TRASH: cint = 0x0000f1f8
 const ICON_TRASH* = ""
-# const ICON_TRASH = "\uf1f8"
-#const ICON_TRASH: cint = 0xE729
+const ICON_SEARCH* = "🔍"
+const ICON_CIRCLED_CROSS* = "✖"
+const ICON_CHEVRON_RIGHT* = "\uE75E"
+const ICON_CHECK* = "✓"
+const ICON_LOGIN* = "\uE740"
 
 proc currentSourceDir*(): string {.inline.} =
   return currentSourcePath.parentDir()
 
 # Config
 
-proc drawLabel*(vg: Context, text: string, x, y, w, h: float) =
+proc drawLabel*(vg: Context, text: string, x, y, w, h: float, font="sans") =
   vg.setFontSize(50.0)
-  vg.setFont("sans")
+  vg.setFont(font)
   vg.setFillColor(1.0, 1.0, 1.0, 1.0)
 
   vg.textAlign("left middle")
   vg.text(text, x, y+h*0.5)
 
-proc drawWindow*(vg: Context, title: string, x, y, w, h: float) =
+proc drawWindow*(vg: Context, title: string, x, y, w, h: float, font="sans") =
   let cornerRadius = 3.0
   withState(vg):
     vg.beginPath()
@@ -36,7 +38,7 @@ proc drawWindow*(vg: Context, title: string, x, y, w, h: float) =
     vg.pathFill()
 
     vg.setFontSize(30.0)
-    vg.setFont("sans")
+    vg.setFont(font)
     vg.textAlign("center middle")
 
     vg.setFontBlur(2)
@@ -185,5 +187,3 @@ proc drawButton*(vg: Context, preicon: string, text: string, x, y, w, h: float, 
   vg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5-1)
   vg.setFillColor(rgba(255,255,255,160))
   vg.text(text, x+w*0.5-tw*0.5+iw*0.25, y+h*0.5)
-
-proc glewInit*() {.header:"<GL/glew.h>".}
