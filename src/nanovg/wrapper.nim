@@ -134,6 +134,6 @@ cPlugin:
 
 # Finally import wrapped header file. Recurse if #include files should also
 # be wrapped. Set dynlib if binding to dynamic library.
-cImport(srcDir/"src"/"nanovg.h", flags = "-f=ast2")
-cImport(srcDir/"src"/"nanovg_gl.h", flags = "-f=ast2")
-cImport(srcDir/"src"/"nanovg_gl_utils.h", flags = "-f=ast2")
+cImport(srcDir/"src"/"nanovg.h", flags = "-f=ast2 -H")
+cImport(srcDir/"src"/"nanovg_gl.h", flags = "-f=ast2 -H")
+cImport(srcDir/"src"/"nanovg_gl_utils.h", flags = "-f=ast2 -H")
