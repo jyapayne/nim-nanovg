@@ -66,27 +66,16 @@ proc main() =
 
   discard sdl.init(sdl.INIT_EVERYTHING.uint32)
   discard sdl.glSetAttribute(sdl.GL_STENCIL_SIZE, 1)
-  discard sdl.glSetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE.cint)
-  discard sdl.glSetAttribute(sdl.GL_CONTEXT_FLAGS, sdl.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG.cint)
-  discard sdl.glSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
-  discard sdl.glSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 2)
+
+  when defined(macosx):
+    discard sdl.glSetAttribute(sdl.GL_CONTEXT_PROFILE_MASK, sdl.GL_CONTEXT_PROFILE_CORE.cint)
+    discard sdl.glSetAttribute(sdl.GL_CONTEXT_FLAGS, sdl.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG.cint)
+    discard sdl.glSetAttribute(sdl.GL_CONTEXT_MAJOR_VERSION, 3)
+    discard sdl.glSetAttribute(sdl.GL_CONTEXT_MINOR_VERSION, 2)
+
   var w, h: cint
 
-  # let
-  #   vert = gpu.loadShader(gpu.VERTEX_SHADER, currentSourceDir()/"resources/untextured.vert")
-  #   frag = gpu.loadShader(gpu.FRAGMENT_SHADER, currentSourceDir()/"resources/untextured.frag")
-  #   program = gpu.linkShaders(vert, frag)
-
-  # glUseProgram(program)
-
-  # let
-  #   vertLoc = gpu.getAttributeLocation(program, "gpu_Vertex")
-  #   colorLoc = gpu.getAttributeLocation(program, "gpu_Color")
-  #   mvpLoc = gpu.getUniformLocation(program, "gpu_ModelViewProjectionMatrix")
-
   let screen = gpu.initRenderer(gpu.RENDERER_OPENGL_3, 640, 480, sdl.WINDOW_ALLOW_HIGHDPI)
-  gpu.setRequiredFeatures(gpu.FEATURE_BASIC_SHADERS)
-
 
   let vg = nanovg.newContext()
   discard sdl.glSetSwapInterval(0)
