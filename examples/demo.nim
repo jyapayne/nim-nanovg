@@ -4,40 +4,55 @@ import glfw, glew
 import perf
 import common
 
+proc frameBufferSize*(window: ptr Window): tuple[w, h: int32] =
+  var fbWidth, fbHeight: cint
+  window.getFramebufferSize(fbWidth.addr, fbHeight.addr)
+
+  return (w: fbWidth, h: fbHeight)
+
+proc size*(window: ptr Window): tuple[w, h: int32] =
+  var width, height: cint
+  window.getWindowSize(width.addr, height.addr)
+
+  return (w: width, h: height)
+
 proc main =
-  var c = DefaultOpenglWindowConfig
-  c.version = glv32
-  c.title = "Minimal Nim-GLFW example"
-  c.forwardCompat = true
-  c.profile = opCoreProfile
-  c.debugContext = false
 
   let
     fps = newGraph(RenderStyle.FPS, "Frame Time")
     cpuGraph = newGraph(RenderStyle.MS, "CPU Time")
 
+  discard glfw.init()
 
-  glfw.initialize()
-  var w = newWindow(c)
+  initHint(CONTEXT_VERSION_MAJOR, 3)
+  initHint(CONTEXT_VERSION_MINOR, 2)
+  when defined(macosx):
+    initHint(OPENGL_FORWARD_COMPAT, 1)
+    initHint(OPENGL_PROFILE, OPENGL_COMPAT_PROFILE)
+  else:
+    initHint(OPENGL_PROFILE, OPENGL_CORE_PROFILE)
+
+  var w = createWindow(800, 600, "Minimal Nim-GLFW Example", nil, nil)
+  w.makeContextCurrent()
   swapInterval(0)
   setTime(0)
 
-  glew.init()
+  discard glew.init()
   let vg = nanovg.newContext()
   vg.loadFont(currentSourceDir()/"resources/Roboto-Regular.ttf", "sans")
   vg.loadFont(currentSourceDir()/"resources/Roboto-Bold.ttf", "sans-bold")
   vg.loadFont(currentSourceDir()/"resources/fa.ttf", "fa")
   var prevt = getTime()
 
-  while not w.shouldClose():
+  while not w.windowShouldClose().bool:
     let t = getTime()
     let dt = t - prevt
     prevt = t
 
-    #let pos = w.cursorPos()
     let fbSize = w.frameBufferSize()
 
     glViewPort(0, 0, fbSize.w, fbSize.h)
+
     glCullFace(GL_BACK)
     glFrontFace(GL_CCW)
     glClearColor(0.3, 0.3, 0.32, 1.0)
@@ -63,7 +78,7 @@ proc main =
     cpuGraph.update(cpuTime)
     waitEvents()
 
-  w.destroy()
+  w.destroyWindow()
   vg.delete()
   glfw.terminate()
 

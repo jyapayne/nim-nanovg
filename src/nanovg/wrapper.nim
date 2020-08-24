@@ -12,6 +12,15 @@ const
   baseDir = currentSourcePath.parentDir().parentDir().parentDir()
   srcDir = baseDir/"build"/"nanovg"
 
+  defs = """
+    nanovgGit
+    nanovgSetver=1f9c8864fc556a1be4d4bf1d6bfe20cde25734b4
+    nanovgStatic
+  """
+
+setDefines(defs.splitLines())
+
+
 static:
   # Print generated Nim to output
   # cDebug()
@@ -78,7 +87,7 @@ when defined(macosx):
     #{.passL: "/usr/local/lib/libSDL2_gpu.a -m64 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -lm".}
   else:
     {.passC: "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW".}
-  when defined(nanovg_Static):
+  when isDefined(nanovgStatic):
     {.passL: "-m64 -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -framework CoreAudio -lm".}
   else:
     {.passL: "-m64 -lSDL2 -lglew -framework GLUT -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework Carbon -framework CoreAudio -lm".}
@@ -88,7 +97,7 @@ elif defined(unix):
   when defined(useGlfw):
     {.passL: "-lGL -lGLU -lGLEW -lm -lglfw".}
   else:
-    {.passL: "-lGL -lGLU -lGLEW -lm -lSDL2".}
+    {.passL: "-lGL -lGLU -lGLEW -lm -lpthread -lglfw".}
 elif defined(windows):
   const inclPath = baseDir/"lib"/"include"
   when defined(amd64):
