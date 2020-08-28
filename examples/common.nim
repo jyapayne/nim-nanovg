@@ -2,11 +2,51 @@ import os
 import nanovg
 
 type
+  StyleConfig* = ref object
+    cornerRadiusTopLeft*: float
+    cornerRadiusTopRight*: float
+    cornerRadiusBottomLeft*: float
+    cornerRadiusBottomRight*: float
+
+    fontBlur*: float
+    font*: string
+    fontSize*: float
+    fontColor*: Color
+    fontShadowColor*: Color
+    fontShadowXOffset*: float
+    fontShadowYOffset*: float
+    textAlignments*: seq[Alignment]
+
+    hasShadow*: bool
+    shadowColor*: Color
+    shadowXOffset*: float
+    shadowYOffset*: float
+
+    highlightColor*: Color
+    highlightWidth*: float
+
+    fillColor*: Color
+    fillOverlay*: Paint
+
+
   WindowConfig* = object
     cornerRadiusTopLeft*: float
     cornerRadiusTopRight*: float
     cornerRadiusBottomLeft*: float
     cornerRadiusBottomRight*: float
+
+let DEFAULT_BUTTON_STYLE = StyleConfig(
+  cornerRadiusTopLeft: 3.0,
+  cornerRadiusTopRight: 3.0,
+  cornerRadiusBottomLeft: 3.0,
+  cornerRadiusBottomRight: 3.0,
+  fontBlur: 0.0,
+  font: "sans",
+  fontSize: 20.0,
+  fontColor: rgba(255, 255, 255, 160),
+  fontShadowColor: rgba(0, 0, 0, 60)
+)
+
 
 # To see icons in code, use a nerd font
 const ICON_TRASH* = ""
@@ -42,7 +82,7 @@ proc drawWindow*(vg: Context, title: string, x, y, w, h: float, font="sans") =
     vg.setFont(font)
     vg.textAlign("center middle")
 
-    vg.setFontBlur(2)
+    vg.setFontBlur(0)
     vg.setFillColor(rgba(0,0,0,128))
     vg.text(title, x+w/2, y+16+1)
 
