@@ -183,6 +183,9 @@ proc setFallbackFont*(context: Context, baseFont, fallbackFont: Font): Font =
 proc `font=`*(context: Context, font: Font) =
   context.fontFaceId(font)
 
+proc `font=`*(context: Context, name: string) =
+  context.fontFace(name)
+
 proc setFont*(context: Context, name: string) =
   context.fontFace(name)
 
@@ -578,8 +581,8 @@ proc pathRect*(context: Context, x, y, width, height: float) =
 proc pathRoundedRect*(context: Context, x, y, width, height, radius: float) =
   context.roundedRect(x, y, width, height, radius)
 
-proc pathRoundedRectVarying*(context: Context, x, y, width, height, radiusTopLeft, radiusTopRight,
-                             radiusBottomRight, radiusBottomLeft: float) =
+proc pathRoundedRect*(context: Context, x, y, width, height, radiusTopLeft, radiusTopRight,
+                      radiusBottomRight, radiusBottomLeft: float) =
   context.roundedRectVarying(
     x, y, width, height,
     radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft

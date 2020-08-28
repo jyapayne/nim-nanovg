@@ -97,7 +97,7 @@ elif defined(unix):
   when defined(useGlfw):
     {.passL: "-lGL -lGLU -lGLEW -lm -lglfw".}
   else:
-    {.passL: "-lGL -lGLU -lGLEW -lm -lpthread -lglfw".}
+    {.passL: "-lGL -lGLU -lGLEW -lm -lpthread".}
 elif defined(windows):
   const inclPath = baseDir/"lib"/"include"
   when defined(amd64):
