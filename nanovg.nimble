@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.2.0"
 author        = "Joey Yakimowich-Payne"
 description   = "A wrapper around nanovg"
 license       = "MIT"
@@ -10,11 +10,10 @@ srcDir        = "src"
 
 requires "nim >= 1.0.6",
          "https://github.com/jyapayne/nimterop#367ec05",
-         "regex >= 0.14.1",
          "opengl >= 1.2.6",
          "sdl2#head",
-         "https://github.com/jyapayne/nim-glew#15383cf",
-         "https://github.com/jyapayne/nim-glfw#22bbdf6"
+         "https://github.com/jyapayne/nim-glew#c6a3e51",
+         "https://github.com/jyapayne/nim-glfw#8414225"
 
 import os
 

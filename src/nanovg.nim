@@ -2,7 +2,7 @@ import macros
 import sequtils
 import strutils
 import strformat
-import nanovg/wrapper
+import nanovg/nanovg
 
 converter intToCuchar*(source: uint8 | int): cuchar =
   return source.cuchar
@@ -470,25 +470,25 @@ proc `globalAlpha=`*(context: Context, alpha: float) =
 # Transforms
 
 proc resetTransform*(context: Context) {.inline.} =
-  wrapper.resetTransform(context)
+  nanovg.resetTransform(context)
 
 proc transform*(context: Context, a, b, c, d, e, f: float) =
-  wrapper.transform(context, a, b, c, d, e, f)
+  nanovg.transform(context, a, b, c, d, e, f)
 
 proc translate*(context: Context, x, y: float) {.inline.} =
-  wrapper.translate(context, x, y)
+  nanovg.translate(context, x, y)
 
 proc rotate*(context: Context, angle: float) {.inline.} =
-  wrapper.rotate(context, angle)
+  nanovg.rotate(context, angle)
 
 proc skewX*(context: Context, angle: float) {.inline.} =
-  wrapper.skewX(context, angle)
+  nanovg.skewX(context, angle)
 
 proc skewY*(context: Context, angle: float) {.inline.} =
-  wrapper.skewY(context, angle)
+  nanovg.skewY(context, angle)
 
 proc scale*(context: Context, x, y: float) {.inline.} =
-  wrapper.scale(context, x, y)
+  nanovg.scale(context, x, y)
 
 proc copyArray[T, U](src: T): U =
   for i in 0..<src.len:
@@ -601,16 +601,16 @@ proc pathStroke*(context: Context) =
   context.stroke()
 
 proc linearGradient*(context: Context, startX, startY, endX, endY: float, startColor, endColor: Color): Paint =
-  result = wrapper.linearGradient(context, startX, startY, endX, endY, startColor, endColor)
+  result = nanovg.linearGradient(context, startX, startY, endX, endY, startColor, endColor)
 
 proc boxGradient*(context: Context, x, y, width, height, radius, feather: float, startColor, endColor: Color): Paint =
-  result = wrapper.boxGradient(context, x, y, width, height, radius, feather, startColor, endColor)
+  result = nanovg.boxGradient(context, x, y, width, height, radius, feather, startColor, endColor)
 
 proc radialGradient*(context: Context, centerX, centerY, innerRadius, outerRadius: float, startColor, endColor: Color): Paint =
-  result = wrapper.radialGradient(context, centerX, centerY, innerRadius, outerRadius, startColor, endColor)
+  result = nanovg.radialGradient(context, centerX, centerY, innerRadius, outerRadius, startColor, endColor)
 
 proc imagePattern*(context: Context, originX, originY, renderSizeX, renderSizeY, angle: float, image: Image, alpha: float): Paint =
-  result = wrapper.imagePattern(context, originX, originY, renderSizeX, renderSizeY, angle, image, alpha)
+  result = nanovg.imagePattern(context, originX, originY, renderSizeX, renderSizeY, angle, image, alpha)
 
 proc setScissor*(context: Context, x, y, width, height: float) =
   context.scissor(x, y, width, height)

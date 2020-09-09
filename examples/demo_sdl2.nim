@@ -73,6 +73,7 @@ proc main() =
   discard glew.init()
   let vg = nanovg.newContext()
   vg.loadFont(currentSourceDir()/"resources"/"Roboto-Regular.ttf", "sans")
+  vg.loadFont(currentSourceDir()/"resources"/"umeboshi.ttf", "umeboshi")
   vg.loadFont(currentSourceDir()/"resources"/"Roboto-Bold.ttf", "sans-bold")
   vg.loadFont(currentSourceDir()/"resources"/"fa.ttf", "fa")
   vg.loadFont(currentSourceDir()/"resources"/"entypo.ttf", "icons")
@@ -87,6 +88,7 @@ proc main() =
     glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
 
     vg.withFrame(window):
+      vg.setFont("umeboshi")
       vg.text("Some仮名thing is up", 100, 100, 100)
       vg.drawWindow("Title", 50, 50, 300, 400)
       vg.drawLabel("Hello!", 10, 10, 280, 20)

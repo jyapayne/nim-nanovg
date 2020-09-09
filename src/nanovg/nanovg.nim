@@ -11,6 +11,7 @@ import nimterop/[cimport, build]
 const
   baseDir = currentSourcePath.parentDir().parentDir().parentDir()
   srcDir = baseDir/"build"/"nanovg"
+  symbolPluginPath = currentSourcePath.parentDir() / "cleansymbols.nim"
 
   defs = """
     nanovgGit
@@ -116,30 +117,7 @@ elif defined(windows):
 cCompile(srcDir/"src/*.c")
 
 # Use cPlugin() to make any symbol changes
-cPlugin:
-  import strutils, regex
-
-  const replacements = [
-    re"^glnvg__(.)",
-    re"^nvg__(.)",
-    re"^nvglu(.)",
-    re"^nvgl(.)",
-    re"^nvg(.)",
-  ]
-
-  proc firstLetterLower(m: RegexMatch, s: string): string =
-    if m.groupsCount > 0 and m.group(0).len > 0:
-      return s[m.group(0)[0]].toLowerAscii
-
-  # Symbol renaming examples
-  proc onSymbol*(sym: var Symbol) {.exportc, dynlib.} =
-    # Get rid of leading and trailing underscores
-    sym.name = sym.name.strip(chars = {'_'})
-
-    # Remove prefixes or suffixes from procs
-    if sym.kind == nskProc:
-      for rep in replacements:
-        sym.name = sym.name.replace(rep, firstLetterLower)
+cPluginPath(symbolPluginPath)
 
 # Finally import wrapped header file. Recurse if #include files should also
 # be wrapped. Set dynlib if binding to dynamic library.
