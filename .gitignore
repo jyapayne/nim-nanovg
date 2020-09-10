@@ -9,6 +9,7 @@ build
 
 nimcache/
 
+generated/
 build/
 examples/demo
 demo.exe
