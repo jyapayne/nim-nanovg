@@ -1,3 +1,4 @@
+import macros
 import os
 import strutils
 import glew
@@ -11,6 +12,8 @@ import nimterop/[cimport, build]
 const
   baseDir = currentSourcePath.parentDir().parentDir().parentDir()
   srcDir = baseDir/"build"/"nanovg"
+  currentPath = getProjectPath().parentDir().sanitizePath
+  generatedPath = (currentPath / "generated" / "nanovg").replace("\\", "/")
   symbolPluginPath = currentSourcePath.parentDir() / "cleansymbols.nim"
 
   defs = """
@@ -121,6 +124,6 @@ cPluginPath(symbolPluginPath)
 
 # Finally import wrapped header file. Recurse if #include files should also
 # be wrapped. Set dynlib if binding to dynamic library.
-cImport(srcDir/"src"/"nanovg.h", flags = "-f=ast2 -H")
-cImport(srcDir/"src"/"nanovg_gl.h", flags = "-f=ast2 -H")
-cImport(srcDir/"src"/"nanovg_gl_utils.h", flags = "-f=ast2 -H")
+cImport(srcDir/"src"/"nanovg.h", flags = "-f=ast2 -H", nimFile = generatedPath / "nanovg.nim")
+cImport(srcDir/"src"/"nanovg_gl.h", flags = "-f=ast2 -H", nimFile = generatedPath / "nanovg_gl.nim")
+cImport(srcDir/"src"/"nanovg_gl_utils.h", flags = "-f=ast2 -H", nimFile = generatedPath / "nanovg_gl_utils.nim")

@@ -12,8 +12,8 @@ requires "nim >= 1.0.6",
          "https://github.com/jyapayne/nimterop#367ec05",
          "opengl >= 1.2.6",
          "sdl2#head",
-         "https://github.com/jyapayne/nim-glew#c6a3e51",
-         "https://github.com/jyapayne/nim-glfw#8414225"
+         "https://github.com/jyapayne/nim-glew#472f904",
+         "https://github.com/jyapayne/nim-glfw#41b7a74"
 
 import os
 
