@@ -9,11 +9,11 @@ srcDir        = "src"
 # Dependencies
 
 requires "nim >= 1.0.6",
-         "https://github.com/jyapayne/nimterop#367ec05",
+         "https://github.com/jyapayne/nimterop#93c8372",
          "opengl >= 1.2.6",
          "sdl2#head",
-         "https://github.com/jyapayne/nim-glew#472f904",
-         "https://github.com/jyapayne/nim-glfw#41b7a74"
+	 "https://github.com/jyapayne/nim-glew#head",
+         "https://github.com/jyapayne/nim-glfw#head"
 
 import os
 
