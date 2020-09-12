@@ -9,7 +9,7 @@ srcDir        = "src"
 # Dependencies
 
 requires "nim >= 1.0.6",
-         "https://github.com/jyapayne/nimterop#93c8372",
+         "https://github.com/jyapayne/nimterop#head",
          "opengl >= 1.2.6",
          "sdl2#head",
          "https://github.com/jyapayne/nim-glew#head",
