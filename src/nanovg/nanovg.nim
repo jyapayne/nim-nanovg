@@ -107,12 +107,12 @@ elif defined(windows):
     const libPath = baseDir/"lib"/"64bit"
   else:
     const libPath = baseDir/"lib"/"32bit"
-  when defined(useGlfw):
+  when not defined(useSDL2):
     {.passC: "-I" & inclPath & "-DNANOVG_GL3_IMPLEMENTATION -DNANOVG_GLEW -DGLEW_STATIC -D_CRT_SECURE_NO_WARNINGS -w -fmax-errors=10".}
-    {.passL: "-L" & libPath & " -static -lglew32 -lm -lglfw3 -lgdi32 -lwinmm -luser32 -lglu32 -lopengl32 -lkernel32".}
+    {.passL: "-L" & libPath & " -static -lm -lgdi32 -lwinmm -luser32 -lopengl32 -lkernel32".}
   else:
     {.passC: "-I" & inclPath & "-DNANOVG_GL3_IMPLEMENTATION -D_CRT_SECURE_NO_WARNINGS -w -fmax-errors=10".}
-    {.passL: "-L" & libPath & "-lSDL2 -lSDL2_image -lm -lgdi32 -lglew32 -lwinmm -luser32 -lglu32 -lopengl32 -lkernel32".}
+    {.passL: "-L" & libPath & "-lSDL2 -lSDL2_image -lm -lgdi32 -lwinmm -luser32 -lglu32 -lopengl32 -lkernel32".}
 
 
 # Compile in any common source code
