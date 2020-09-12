@@ -45,7 +45,6 @@ src/*.c
 #define NANOVG_GL_H
 #define NANOVG_GL_USE_UNIFORMBUFFER
 #define NANOVG_GL3
-#define NANOVG_GL3_IMPLEMENTATION
 #define GLFW_INCLUDE_GLEXT
 #ifdef __APPLE__
 #  define GLFW_INCLUDE_GLCOREARB
@@ -58,7 +57,6 @@ src/*.c
     let newContents = contents.replace("#define NANOVG_GL_H", """
 #define NANOVG_GL_H
 #define NANOVG_GL_USE_UNIFORMBUFFER
-#define NANOVG_GL3_IMPLEMENTATION
 #define NANOVG_GL3
 #include <GL/glew.h>
 #include "nanovg.h"
@@ -66,7 +64,7 @@ src/*.c
 
   writeFile(srcDir/"src/nanovg_gl.h", newContents)
   # This is needed for some function definitions inside nanovg_gl.h
-  writeFile(srcDir/"src/nanovg_gl.c", newContents)
+  # writeFile(srcDir/"src/nanovg_gl.c", newContents)
 
 cDefine("NANOVG_GL3_IMPLEMENTATION", "")
 cDefine("NANOVG_GL3", "")
@@ -75,8 +73,7 @@ cDefine("NANOVG_GL3", "")
 cOverride:
   # Standard Nim code to wrap types, consts, procs, etc.
   type
-     NVGcontext* {.bycopy.} = object
-     NVGcolor* {.bycopy.} = object
+     NVGcolor* {.bycopy, impnanovgHdr, importc: "struct NVGcolor".} = object
        r*: cfloat
        g*: cfloat
        b*: cfloat
@@ -126,6 +123,4 @@ cPluginPath(symbolPluginPath)
 
 # Finally import wrapped header file. Recurse if #include files should also
 # be wrapped. Set dynlib if binding to dynamic library.
-cImport(srcDir/"src"/"nanovg.h", flags = "-f=ast2 -H", nimFile = generatedPath / "nanovg.nim")
-cImport(srcDir/"src"/"nanovg_gl.h", flags = "-f=ast2 -H", nimFile = generatedPath / "nanovg_gl.nim")
-cImport(srcDir/"src"/"nanovg_gl_utils.h", flags = "-f=ast2 -H", nimFile = generatedPath / "nanovg_gl_utils.nim")
+cImport(@[srcDir/"src"/"nanovg.h", srcDir/"src"/"nanovg_gl.h", srcDir/"src"/"nanovg_gl_utils.h"] , flags = "-f=ast2", nimFile = generatedPath / "nanovg.nim")
