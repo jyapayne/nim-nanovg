@@ -45,6 +45,7 @@ src/*.c
 #define NANOVG_GL_H
 #define NANOVG_GL_USE_UNIFORMBUFFER
 #define NANOVG_GL3
+#define NANOVG_GL3_IMPLEMENTATION
 #define GLFW_INCLUDE_GLEXT
 #ifdef __APPLE__
 #  define GLFW_INCLUDE_GLCOREARB
@@ -57,6 +58,7 @@ src/*.c
     let newContents = contents.replace("#define NANOVG_GL_H", """
 #define NANOVG_GL_H
 #define NANOVG_GL_USE_UNIFORMBUFFER
+#define NANOVG_GL3_IMPLEMENTATION
 #define NANOVG_GL3
 #include <GL/glew.h>
 #include "nanovg.h"
@@ -117,7 +119,7 @@ elif defined(windows):
 
 
 # Compile in any common source code
-cCompile(srcDir/"src/*.c")
+cCompile(srcDir/"src"/"*.c")
 
 # Use cPlugin() to make any symbol changes
 cPluginPath(symbolPluginPath)
