@@ -126,11 +126,12 @@ proc cpToUtf8*(code: int): string =
 
   return res
 
-let Colors: tuple[Red, Green, Blue, Yellow, Orange, Purple, White, Grey, Black: Color] =
+let Colors: tuple[Red, Green, Blue, LightBlue, Yellow, Orange, Purple, White, Grey, Black: Color] =
   (
     Red: rgb(231, 64, 74),
     Green: rgb(40, 184, 115),
-    Blue: rgb(43, 183, 209),
+    Blue: rgb(29, 100, 210),
+    LightBlue: rgb(43, 183, 209),
     Yellow: rgb(243, 203, 57),
     Orange: rgb(255, 130, 76),
     Purple: rgb(97, 18, 204),
@@ -150,10 +151,11 @@ proc defaultButtonStyle(fillColor: Color): StyleConfig {.inline.} =
     paddingTop: 5.0,
     paddingBottom: 5.0,
     iconFont: "fa",
+    icon: some(Icon.Bacteria),
     fontBlur: 0.0,
     font: "sans-bold",
     fontSize: 20.0,
-    fontColor: rgba(255, 255, 255, 160),
+    fontColor: rgb(200, 200, 200),
     hasFontShadow: true,
     fontShadowColor: rgba(0, 0, 0, 160),
     fontShadowXOffset: 0.0,
@@ -164,16 +166,18 @@ proc defaultButtonStyle(fillColor: Color): StyleConfig {.inline.} =
     shadowColor: rgba(0, 0, 0, 90),
     shadowXOffset: 3.0,
     shadowYOffset: 3.0,
+    fillColor: fillColor,
     gradientStartColor: rgba(255, 255, 255, if fillColor.isBlack: 16 else: 32),
     gradientEndColor: rgba(0, 0, 0, if fillColor.isBlack: 16 else: 32),
     textAlignments: @[Alignment.Center, Alignment.Middle]
   )
 
-let DefaultButtonStyles: tuple[Red, Green, Blue, Yellow, Orange, Purple, White, Grey, Black: StyleConfig] =
+let DefaultButtonStyles: tuple[Red, Green, Blue, LightBlue, Yellow, Orange, Purple, White, Grey, Black: StyleConfig] =
   (
     Red: defaultButtonStyle(Colors.Red),
     Green: defaultButtonStyle(Colors.Green),
     Blue: defaultButtonStyle(Colors.Blue),
+    LightBlue: defaultButtonStyle(Colors.LightBlue),
     Yellow: defaultButtonStyle(Colors.Yellow),
     Orange: defaultButtonStyle(Colors.Orange),
     Purple: defaultButtonStyle(Colors.Purple),
@@ -226,13 +230,17 @@ proc drawButton*(vg: Context, text: string, x, y: float, style: StyleConfig = De
   let textWidth = textBounds.horizontalAdvance
   let height = (textBounds.bounds.ymax - textBounds.bounds.ymin) + style.paddingTop + style.paddingBottom
 
-  vg.setFontSize(height * 0.5)
+  vg.setFontSize((style.fontSize*2) / 3)
   vg.setFont(style.iconFont)
-  let iconBounds = vg.textBounds($style.icon, 0, 0)
-  var iconWidth = iconBounds.horizontalAdvance
-  # iconWidth += height*0.15
+  var iconBounds: TextBounds
+  var iconWidth = 0.0
+  var width = style.paddingLeft + style.paddingRight + textWidth
+  if style.icon.isSome:
+    iconBounds = vg.textBounds($style.icon.get, 0, 0)
+    iconWidth = iconBounds.horizontalAdvance
+    iconWidth += height * 0.15
 
-  let width = textWidth + iconWidth + style.paddingLeft + style.paddingRight
+    width += iconWidth
 
   let bg = vg.linearGradient(
     x, y, x, y+height,
@@ -240,8 +248,6 @@ proc drawButton*(vg: Context, text: string, x, y: float, style: StyleConfig = De
     style.gradientEndColor
   )
 
-  let color = style.fillColor
-  let shadowColor = style.shadowColor
   let lightWidth = style.highlightWidth
 
   if style.hasShadow:
@@ -262,8 +268,10 @@ proc drawButton*(vg: Context, text: string, x, y: float, style: StyleConfig = De
     style.cornerRadiusTopLeft, style.cornerRadiusTopRight,
     style.cornerRadiusBottomRight, style.cornerRadiusBottomLeft
   )
-  vg.setFillColor(style.fillColor)
-  vg.pathFill()
+
+  if not isBlack(style.fillColor):
+    vg.setFillColor(style.fillColor)
+    vg.pathFill()
 
   vg.setFillPaint(bg)
   vg.pathFill()
@@ -275,10 +283,24 @@ proc drawButton*(vg: Context, text: string, x, y: float, style: StyleConfig = De
   vg.pathLineTo(x+width-(style.cornerRadiusBottomLeft), y+lightWidth+1)
   vg.pathStroke()
 
+  if style.icon.isSome:
+    vg.setFontSize((style.fontSize*2) / 3)
+    vg.setFont(style.iconFont)
+    vg.textAlign(style.textAlignments)
+    if style.hasFontShadow:
+      vg.setFillColor(style.fontShadowColor)
+      vg.text($style.icon.get, x + width/2 - textWidth/2, y + height/2 + 1)
+    vg.setFillColor(style.fontColor)
+    vg.text($style.icon.get, x + width/2 - textWidth/2, y + height/2)
+
+  vg.setFontSize(style.fontSize)
   vg.setFont(style.font)
   vg.textAlign(style.textAlignments)
+  if style.hasFontShadow:
+    vg.setFillColor(style.fontShadowColor)
+    vg.text(text, x + width/2 + iconWidth/2, y + height/2 + 1)
   vg.setFillColor(style.fontColor)
-  vg.text(text, x + width, y + height - 1)
+  vg.text(text, x + width/2 + iconWidth/2, y + height/2)
 
 proc drawButton*(vg: Context, preicon: Icon, text: string, x, y, w, h: float, color: Color) =
 
