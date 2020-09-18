@@ -13,7 +13,8 @@ requires "nim >= 1.0.6",
          "opengl >= 1.2.6",
          "sdl2#head",
          "https://github.com/jyapayne/nim-glew#head",
-         "https://github.com/jyapayne/nim-glfw#head"
+         "https://github.com/jyapayne/nim-glfw#head",
+         "zip#0.3.1"
 
 import os
 
