@@ -1,5 +1,7 @@
+import options
 import os
 import nanovg
+import icons
 
 type
   StyleConfig* = ref object
@@ -8,10 +10,19 @@ type
     cornerRadiusBottomLeft*: float
     cornerRadiusBottomRight*: float
 
+    paddingLeft*: float
+    paddingRight*: float
+    paddingBottom*: float
+    paddingTop*: float
+
+    icon*: Option[Icon]
+    iconFont*: string
+
     fontBlur*: float
     font*: string
     fontSize*: float
     fontColor*: Color
+    hasFontShadow*: bool
     fontShadowColor*: Color
     fontShadowXOffset*: float
     fontShadowYOffset*: float
@@ -26,35 +37,14 @@ type
     highlightWidth*: float
 
     fillColor*: Color
-    fillOverlay*: Paint
-
+    gradientStartColor*: Color
+    gradientEndColor*: Color
 
   WindowConfig* = object
     cornerRadiusTopLeft*: float
     cornerRadiusTopRight*: float
     cornerRadiusBottomLeft*: float
     cornerRadiusBottomRight*: float
-
-let DEFAULT_BUTTON_STYLE = StyleConfig(
-  cornerRadiusTopLeft: 3.0,
-  cornerRadiusTopRight: 3.0,
-  cornerRadiusBottomLeft: 3.0,
-  cornerRadiusBottomRight: 3.0,
-  fontBlur: 0.0,
-  font: "sans",
-  fontSize: 20.0,
-  fontColor: rgba(255, 255, 255, 160),
-  fontShadowColor: rgba(0, 0, 0, 60)
-)
-
-
-# To see icons in code, use a nerd font
-const ICON_TRASH* = ""
-const ICON_SEARCH* = "🔍"
-const ICON_CIRCLED_CROSS* = "✖"
-const ICON_CHEVRON_RIGHT* = "\uE75E"
-const ICON_CHECK* = "✓"
-const ICON_LOGIN* = "\uE740"
 
 proc currentSourceDir*(): string {.inline.} =
   return currentSourcePath.parentDir()
@@ -136,6 +126,62 @@ proc cpToUtf8*(code: int): string =
 
   return res
 
+let Colors: tuple[Red, Green, Blue, Yellow, Orange, Purple, White, Grey, Black: Color] =
+  (
+    Red: rgb(231, 64, 74),
+    Green: rgb(40, 184, 115),
+    Blue: rgb(43, 183, 209),
+    Yellow: rgb(243, 203, 57),
+    Orange: rgb(255, 130, 76),
+    Purple: rgb(97, 18, 204),
+    White: rgb(255, 255, 255),
+    Grey: rgb(129, 110, 96),
+    Black: rgb(0, 0, 0)
+  )
+
+proc defaultButtonStyle(fillColor: Color): StyleConfig {.inline.} =
+  StyleConfig(
+    cornerRadiusTopLeft: 3.0,
+    cornerRadiusTopRight: 3.0,
+    cornerRadiusBottomLeft: 3.0,
+    cornerRadiusBottomRight: 3.0,
+    paddingLeft: 10.0,
+    paddingRight: 10.0,
+    paddingTop: 5.0,
+    paddingBottom: 5.0,
+    iconFont: "fa",
+    fontBlur: 0.0,
+    font: "sans-bold",
+    fontSize: 20.0,
+    fontColor: rgba(255, 255, 255, 160),
+    hasFontShadow: true,
+    fontShadowColor: rgba(0, 0, 0, 160),
+    fontShadowXOffset: 0.0,
+    fontShadowYOffset: 1.0,
+    highlightColor: rgba(255, 255, 255, 100),
+    highlightWidth: 0.5,
+    hasShadow: true,
+    shadowColor: rgba(0, 0, 0, 90),
+    shadowXOffset: 3.0,
+    shadowYOffset: 3.0,
+    gradientStartColor: rgba(255, 255, 255, if fillColor.isBlack: 16 else: 32),
+    gradientEndColor: rgba(0, 0, 0, if fillColor.isBlack: 16 else: 32),
+    textAlignments: @[Alignment.Center, Alignment.Middle]
+  )
+
+let DefaultButtonStyles: tuple[Red, Green, Blue, Yellow, Orange, Purple, White, Grey, Black: StyleConfig] =
+  (
+    Red: defaultButtonStyle(Colors.Red),
+    Green: defaultButtonStyle(Colors.Green),
+    Blue: defaultButtonStyle(Colors.Blue),
+    Yellow: defaultButtonStyle(Colors.Yellow),
+    Orange: defaultButtonStyle(Colors.Orange),
+    Purple: defaultButtonStyle(Colors.Purple),
+    White: defaultButtonStyle(Colors.White),
+    Grey: defaultButtonStyle(Colors.Grey),
+    Black: defaultButtonStyle(Colors.Black)
+  )
+
 proc drawButton*(vg: Context, text: string, x, y, width, height: float) =
   let bg = vg.linearGradient(
     x, y, x, y+height,
@@ -172,8 +218,69 @@ proc drawButton*(vg: Context, text: string, x, y, width, height: float) =
   vg.pathLineTo(x+width-(radius), y+lightWidth+1)
   vg.pathStroke()
 
+proc drawButton*(vg: Context, text: string, x, y: float, style: StyleConfig = DefaultButtonStyles.Blue) =
 
-proc drawButton*(vg: Context, preicon: string, text: string, x, y, w, h: float, color: Color) =
+  vg.setFontSize(style.fontSize)
+  vg.setFont(style.font)
+  let textBounds = vg.textBounds(text, 0.0, 0.0)
+  let textWidth = textBounds.horizontalAdvance
+  let height = (textBounds.bounds.ymax - textBounds.bounds.ymin) + style.paddingTop + style.paddingBottom
+
+  vg.setFontSize(height * 0.5)
+  vg.setFont(style.iconFont)
+  let iconBounds = vg.textBounds($style.icon, 0, 0)
+  var iconWidth = iconBounds.horizontalAdvance
+  # iconWidth += height*0.15
+
+  let width = textWidth + iconWidth + style.paddingLeft + style.paddingRight
+
+  let bg = vg.linearGradient(
+    x, y, x, y+height,
+    style.gradientStartColor,
+    style.gradientEndColor
+  )
+
+  let color = style.fillColor
+  let shadowColor = style.shadowColor
+  let lightWidth = style.highlightWidth
+
+  if style.hasShadow:
+    vg.beginPath()
+    vg.pathRoundedRect(
+      x+1+style.shadowXOffset,
+      y+1+style.shadowYOffset,
+      width-2, height-2,
+      style.cornerRadiusTopLeft, style.cornerRadiusTopRight,
+      style.cornerRadiusBottomRight, style.cornerRadiusBottomLeft
+    )
+    vg.setFillColor(style.shadowColor)
+    vg.pathFill()
+
+  vg.beginPath()
+  vg.pathRoundedRect(
+    x+1, y+1, width-2, height-2,
+    style.cornerRadiusTopLeft, style.cornerRadiusTopRight,
+    style.cornerRadiusBottomRight, style.cornerRadiusBottomLeft
+  )
+  vg.setFillColor(style.fillColor)
+  vg.pathFill()
+
+  vg.setFillPaint(bg)
+  vg.pathFill()
+
+  vg.beginPath()
+  vg.pathMoveTo(x+style.cornerRadiusBottomLeft, y+lightWidth+1)
+  vg.setStrokeWidth(lightWidth)
+  vg.setStrokeColor(style.highlightColor)
+  vg.pathLineTo(x+width-(style.cornerRadiusBottomLeft), y+lightWidth+1)
+  vg.pathStroke()
+
+  vg.setFont(style.font)
+  vg.textAlign(style.textAlignments)
+  vg.setFillColor(style.fontColor)
+  vg.text(text, x + width, y + height - 1)
+
+proc drawButton*(vg: Context, preicon: Icon, text: string, x, y, w, h: float, color: Color) =
 
   var
     bg: Paint
@@ -211,7 +318,7 @@ proc drawButton*(vg: Context, preicon: string, text: string, x, y, w, h: float, 
 
   vg.setFontSize(h*0.5)
   vg.setFont("fa")
-  ib = vg.textBounds(preicon, 0, 0)
+  ib = vg.textBounds($preicon, 0, 0)
   iw = ib.horizontalAdvance
   iw += h*0.15
 
@@ -219,7 +326,7 @@ proc drawButton*(vg: Context, preicon: string, text: string, x, y, w, h: float, 
   vg.setFont("fa")
   vg.setFillColor(rgba(255,255,255,96))
   vg.textAlign("left middle")
-  vg.text(preicon, x+w*0.5-tw*0.5-iw*0.75, y+h*0.5)
+  vg.text($preicon, x+w*0.5-tw*0.5-iw*0.75, y+h*0.5)
 
   vg.setFontSize(20.0)
   vg.setFont("sans-bold")
@@ -242,7 +349,7 @@ proc drawSearchBox*(vg: Context, text: string, x, y, w, h: float) =
   vg.setFont("icons")
   vg.setFillColor(rgba(255,255,255,64))
   vg.textAlign("center middle")
-  vg.text(ICON_SEARCH, x+h*0.55f, y+h*0.55f)
+  vg.text($Icon.Search, x+h*0.55f, y+h*0.55f)
 
   vg.setFontSize(20.0f)
   vg.setFont("sans")
@@ -255,4 +362,4 @@ proc drawSearchBox*(vg: Context, text: string, x, y, w, h: float) =
   vg.setFont("icons")
   vg.setFillColor(rgba(255,255,255,32))
   vg.textAlign("center middle")
-  vg.text(ICON_CIRCLED_CROSS, x+w-h*0.55f, y+h*0.55f)
+  vg.text($Icon.TimesCircle, x+w-h*0.55f, y+h*0.55f)

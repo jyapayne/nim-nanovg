@@ -73,7 +73,7 @@ cDefine("NANOVG_GL3", "")
 cOverride:
   # Standard Nim code to wrap types, consts, procs, etc.
   type
-     NVGcolor* {.bycopy, importc: "struct NVGcolor".} = object
+     NVGcolor* {.bycopy, impnanovgHdr, importc: "struct NVGcolor".} = object
        r*: cfloat
        g*: cfloat
        b*: cfloat

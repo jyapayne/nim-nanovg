@@ -3,6 +3,7 @@ import nanovg
 import glfw, glew
 import perf
 import common
+import icons
 
 proc frameBufferSize*(window: ptr Window): tuple[w, h: int32] =
   var fbWidth, fbHeight: cint
@@ -17,7 +18,6 @@ proc size*(window: ptr Window): tuple[w, h: int32] =
   return (w: width, h: height)
 
 proc main =
-
   let
     fps = newGraph(RenderStyle.FPS, "Frame Time")
     cpuGraph = newGraph(RenderStyle.MS, "CPU Time")
@@ -67,9 +67,9 @@ proc main =
       let x = vg.glyphPositions("Some仮名thing is up", 0, 0)
       vg.drawWindow("Title", 50, 50, 300, 400)
       vg.drawLabel("Hello!", 10, 10, 280, 20)
-      vg.drawButton(ICON_TRASH, "Delete", 100, 200, 160, 28, rgba(128, 16, 8, 255))
-      vg.drawButton(ICON_TRASH, "Deleter", 100, 250, 160, 28, rgba(12, 130, 80, 255))
-      vg.drawButton("Testing", 100, 300, 160, 28)
+      vg.drawButton(Icon.Trash, "Delete", 100, 200, 160, 28, rgba(128, 16, 8, 255))
+      vg.drawButton(Icon.Trash, "Deleter", 100, 250, 160, 28, rgba(12, 130, 80, 255))
+      vg.drawButton("Testing", 100, 300)
 
       vg.render(fps, 5, 5)
       vg.render(cpuGraph, 210, 5)
